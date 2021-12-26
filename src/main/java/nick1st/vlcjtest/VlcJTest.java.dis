@@ -1,0 +1,202 @@
+package nick1st.vlcjtest;
+
+import com.sun.jna.NativeLibrary;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
+import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
+import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
+import uk.co.caprica.vlcj.support.Info;
+import uk.co.caprica.vlcj.support.version.LibVlcVersion;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+// The value here should match an entry in the META-INF/mods.toml file
+@Mod("vlc-j-test")
+public class VlcJTest2 {
+
+    // Directly reference a log4j logger.
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final NativeDiscovery discovery = new NativeDiscovery();
+
+    public VlcJTest2() {
+        //Check for VLC availability
+        makeVlcAvailable();
+
+        // Register the setup method for modloading
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        // Register the enqueueIMC method for modloading
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
+        // Register the processIMC method for modloading
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
+        // Register the doClientStuff method for modloading
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+
+        // Register ourselves for server and other game events we are interested in
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    private void setup(final FMLCommonSetupEvent event) {
+        // some preinit code
+        LOGGER.info("HELLO FROM PREINIT");
+        LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
+    }
+
+    private void doClientStuff(final FMLClientSetupEvent event) {
+        // do something that can only be done on the client
+        LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().gameSettings);
+    }
+
+    private void enqueueIMC(final InterModEnqueueEvent event) {
+        // some example code to dispatch IMC to another mod
+        InterModComms.sendTo("vlc-j-test", "helloworld", () -> {
+            LOGGER.info("Hello world from the MDK");
+            return "Hello world";
+        });
+    }
+
+    private void processIMC(final InterModProcessEvent event) {
+        // some example code to receive and process InterModComms from other mods
+        LOGGER.info("Got IMC {}", event.getIMCStream().
+                map(m -> m.getMessageSupplier().get()).
+                collect(Collectors.toList()));
+    }
+
+    // You can use SubscribeEvent and let the Event Bus discover methods to call
+    @SubscribeEvent
+    public void onServerStarting(FMLServerStartingEvent event) {
+        // do something when the server starts
+        LOGGER.info("HELLO from server starting");
+    }
+
+    public boolean makeVlcAvailable() {
+        LOGGER.info("Trying to get VLC context");
+        LOGGER.debug(Info.getInstance());
+        try {
+            String path = discoverNativeVLC(discovery);
+            LOGGER.info("Native VLC Found at '" + path + "'");
+        } catch (UnsatisfiedLinkError e) {
+            LOGGER.info("Couldn't load vlc binaries, unpacking...");
+
+            // resolve architecture
+            Map<String, String> archMap = new HashMap<>();
+            archMap.put("x86", "32");
+            archMap.put("i386", "32");
+            archMap.put("i486", "32");
+            archMap.put("i586", "32");
+            archMap.put("i686", "32");
+            archMap.put("x86_64", "64");
+            archMap.put("amd64", "64");
+            archMap.put("arm64", "mac");
+            archMap.put("powerpc", "ppc");
+            String arch = archMap.get(SystemUtils.OS_ARCH);
+            if (arch == null) {
+                throw new IllegalArgumentException("Unknown architecture " + SystemUtils.OS_ARCH);
+            } else if (arch.equals("ppc")) {
+                throw new IllegalArgumentException("Unsupported architecture " + SystemUtils.OS_ARCH);
+            }
+
+            if (SystemUtils.IS_OS_WINDOWS) {
+                InputStream in = getClass().getResourceAsStream("/vlc-bin/windows/" + arch + "/libvlc.dll");
+                OutputStream out = null;
+                try {
+                    out = new FileOutputStream("libvlc.dll");
+                    IOUtils.copy(in, out);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                in = getClass().getResourceAsStream("/vlc-bin/windows/" + arch + "/libvlccore.dll");
+                out = null;
+                try {
+                    out = new FileOutputStream("libvlccore.dll");
+                    IOUtils.copy(in, out);
+                    in.close();
+                    out.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "");
+                try {
+                    String path = discoverNativeVLC(new NativeDiscovery());
+                    LOGGER.info("Native VLC Found at '" + path + "'");
+                } catch (UnsatisfiedLinkError e1) {
+                    LOGGER.fatal("Couldn't load vlc binaries, crashing...");
+                }
+                System.out.println();
+            } else if (SystemUtils.IS_OS_MAC) {
+                System.out.println();
+            } else if (SystemUtils.IS_OS_LINUX) {
+                System.out.println();
+            } else {
+                LOGGER.fatal("Couldn't unpack vlc binaries, unsupported platform...", new UnsatisfiedLinkError("Can't find supported vlc binaries"));
+                System.exit(-1);
+            }
+        } catch ( Exception  e) { //This should NEVER happen
+            try {
+                throw new RuntimeException("What the fuck just happened? Report this to Nick1st!!!").fillInStackTrace();
+            } catch (Throwable ex) { // This runs if the stacktrace can't be filled in
+                throw new RuntimeException(ex);
+            }
+        }
+        return false;
+    }
+
+    private String discoverNativeVLC(NativeDiscovery discovery) {
+        String nativeLibraryPath = null;
+        if (discovery != null) {
+            discovery.discover();
+            NativeDiscoveryStrategy nativeDiscoveryStrategy = discovery.successfulStrategy();
+            nativeLibraryPath = discovery.discoveredPath();
+            LOGGER.debug("Strategy: " + nativeDiscoveryStrategy);
+            LOGGER.debug("Path: " + nativeLibraryPath);
+        }
+
+        try {
+            checkVersion();
+        } catch (NoClassDefFoundError | Exception e) {
+            throw new NativeLibraryMappingException("Failed to properly initialise the native library", e);
+        }
+        return nativeLibraryPath;
+    }
+
+    private void checkVersion() throws Exception {
+        LibVlcVersion version = new LibVlcVersion();
+        if (!version.isSupported()) {
+            throw new Exception(String.format("Failed to find minimum required VLC version %s, found %s", version.getRequiredVersion(), version.getVersion()));
+        }
+    }
+
+    // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
+    // Event bus for receiving Registry Events)
+    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class RegistryEvents {
+        @SubscribeEvent
+        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
+            // register a new block here
+            LOGGER.info("HELLO from Register Block");
+        }
+    }
+}
