@@ -1,4 +1,4 @@
-package nick1st.vlcjtest;
+package nick1st.fancyvideo;
 
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
@@ -20,10 +20,10 @@ public class VideoRenderCallback extends RenderCallbackAdapter {
     @Override
     protected void onDisplay(MediaPlayer mediaPlayer, int[] buffer) {
         try {
-            VlcJTest.semaphore.acquire();
-            VlcJTest.frameList = Arrays.stream(buffer).boxed().collect(Collectors.toList());
-            VlcJTest.width = width;
-            VlcJTest.semaphore.release();
+            FancyVideo.semaphore.acquire();
+            FancyVideo.frameList = Arrays.stream(buffer).boxed().collect(Collectors.toList());
+            FancyVideo.width = width;
+            FancyVideo.semaphore.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

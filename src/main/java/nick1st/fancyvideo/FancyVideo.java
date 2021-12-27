@@ -1,4 +1,4 @@
-package nick1st.vlcjtest;
+package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.sun.jna.NativeLibrary;
@@ -42,8 +42,8 @@ import java.util.stream.IntStream;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_get_version;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod("vlc-j-test")
-public class VlcJTest {
+@Mod("fancyvideo")
+public class FancyVideo {
 
     private final CallbackMediaPlayerComponent mediaPlayerComponent;
     private final VideoRenderCallback defaultRenderCallback = new VideoRenderCallback();
@@ -58,9 +58,9 @@ public class VlcJTest {
     private final NativeDiscovery discovery = new NativeDiscovery();
 
     // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger("vlc-j-test");
+    private static final Logger LOGGER = LogManager.getLogger("fancyvideo");
 
-    public VlcJTest() {
+    public FancyVideo() {
         // Check or create VLC availability
         makeVlcAvailable();
 
