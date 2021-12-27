@@ -97,15 +97,17 @@ repositories {
     }
 
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
-    // flatDir {
-    //     dir 'libs'
-    // }
+    flatDir {
+         dir 'libs'
+    }
 }
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.8'
     implementation("uk.co.caprica:vlcj:${vlcj_version}") // vlcJ
     annotationProcessor 'org.spongepowered:mixin:0.8:processor' // Mixin
+    implementation files('libs/dev_konkrete_forge_1.3.2_MC_1.16.2-1.16.5.jar') // Konkrete
+    implementation files('libs/dev_fancymenu_forge_2.4.3_MC_1.16.2-1.16.5.jar') // FancyMenu
 }
 
 // Make builds reproducible

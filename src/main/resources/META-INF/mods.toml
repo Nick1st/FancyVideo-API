@@ -21,7 +21,7 @@ modId="fancyvideo" #mandatory
 # see the associated build.gradle script for how to populate this completely automatically during a build
 version="${file.jarVersion}" #mandatory
 # A display name for the mod
-displayName="Vlc J Test" #mandatory
+displayName="FancyVideo" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
 #updateJSONURL="http://myurl.me/" #optional
 # A URL for the "homepage" for this mod, displayed in the mod UI
@@ -34,7 +34,7 @@ displayName="Vlc J Test" #mandatory
 authors="Nick1st" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A mod to test rendering videos in minecraft
+A mod for rendering videos in minecraft
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.fancyvideo]] #optional
@@ -56,3 +56,17 @@ A mod to test rendering videos in minecraft
    versionRange="[1.16.5,1.17)"
    ordering="NONE"
    side="BOTH"
+# FancyMenu
+[[dependencies.fancyvideo]]
+    modId="fancymenu"
+    mandatory=false
+    ordering="AFTER"
+    versionRange="[2.4.3,2.5)"
+    side="CLIENT"
+# Konkrete
+[[dependencies.Konkrete]]
+    modId="konkrete"
+    mandatory=true
+    ordering="NONE"
+    versionRange="[1.3.2,1.4)"
+    side="CLIENT"

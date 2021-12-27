@@ -74,9 +74,6 @@ public class FancyVideo {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-
-        // Init Keks Screen Handler (Directly using it was simpler than adding it as lib [Caused some render conflicts during dev])
-        CurrentScreenHandler.init();
     }
 
     /**
