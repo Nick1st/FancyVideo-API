@@ -1,4 +1,4 @@
-package nick1st.vlcjtest;
+package nick1st.fancyvideo;
 
 import com.sun.jna.NativeLibrary;
 import net.minecraft.block.Block;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod("vlc-j-test")
+@Mod("fancyvideo")
 public class VlcJTest2 {
 
     // Directly reference a log4j logger.
@@ -72,7 +72,7 @@ public class VlcJTest2 {
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
         // some example code to dispatch IMC to another mod
-        InterModComms.sendTo("vlc-j-test", "helloworld", () -> {
+        InterModComms.sendTo("fancyvideo", "helloworld", () -> {
             LOGGER.info("Hello world from the MDK");
             return "Hello world";
         });
