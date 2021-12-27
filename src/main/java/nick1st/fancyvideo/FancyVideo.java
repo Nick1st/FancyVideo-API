@@ -1,6 +1,7 @@
 package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.sun.jna.NativeLibrary;
 import de.keksuccino.konkrete.rendering.CurrentScreenHandler;
 import net.minecraft.client.gui.screen.OptionsScreen;
@@ -17,6 +18,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.Pointer;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -215,6 +218,11 @@ public class FancyVideo {
 
     @SubscribeEvent
     public void drawBackground(GuiScreenEvent.BackgroundDrawnEvent e) {
+        // Maybe we can achieve faster handling using one of those and native render and composition calls:
+        // RenderSystem.glBindBuffer();
+        // RenderSystem.glBufferData();
+        // Pointer
+        // RenderSystem.bindTexture();
         renderBackground(e.getMatrixStack(), e.getGui());
     }
 

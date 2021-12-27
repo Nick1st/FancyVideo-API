@@ -121,6 +121,10 @@ run/**
 !run/plugins unused/
 !run/plugins/**
 !run/plugins unused/**
+!run/libvlc*
+# Log4J Config
+!run/config/
+!run/config/log4j2.xml
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
