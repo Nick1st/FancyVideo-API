@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "nick1st.fancyvideo.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "vlcjtest.refmap.json",
+  "refmap": "fancyvideo.refmap.json",
   "mixins": [
   ],
   "client": [
