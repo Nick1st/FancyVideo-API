@@ -27,19 +27,26 @@ public class BufferToMatrixStack {
         bb.begin(7, DefaultVertexFormats.POSITION_COLOR);
     }
 
-    public static int[][] extractBytes (String imageName) throws IOException {
+    public BufferToMatrixStack(MatrixStack matrix, Tessellator tessellator) {
+        matrix4f = matrix.getLast().getMatrix();
+        bb = tessellator.getBuffer();
+        bb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+    }
+
+    public static int[] extractBytes (String imageName) throws IOException {
         // open image
         File imgPath = new File(imageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
 
-        int[][] matrix = new int[bufferedImage.getHeight()][bufferedImage.getWidth()];
+        int[] image = new int[bufferedImage.getHeight() * bufferedImage.getWidth()];
+        int k = 0;
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
-                matrix[i][j] = bufferedImage.getRGB(j, i);
+                image[k] = bufferedImage.getRGB(j, i);
+                k++;
             }
         }
-
-        return matrix;
+        return image;
     }
 
     public BufferToMatrixStack set(float minX, float minY, float maxX, float maxY, int color, float opacity) {
@@ -88,5 +95,10 @@ public class BufferToMatrixStack {
         RenderSystem.enableTexture();
         // Required for transparency
         RenderSystem.disableBlend();
+    }
+
+    public void finishDrawingTest() {
+        bb.finishDrawing();
+        WorldVertexBufferUploader.draw(bb);
     }
 }

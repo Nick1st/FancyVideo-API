@@ -30,9 +30,7 @@ import uk.co.caprica.vlcj.support.version.Version;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
@@ -49,7 +47,7 @@ public class FancyVideo {
 
     // Synced objects
     static Semaphore semaphore = new Semaphore(1, true);
-    static List<Integer> frameList = new ArrayList<>(0);
+    static int[] frame = new int[0];
     static int width;
 
     private boolean init;
@@ -233,10 +231,10 @@ public class FancyVideo {
         BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
         try {
             semaphore.acquire();
-            IntStream.range(0, frameList.size()).forEach(index -> {
+            IntStream.range(0, frame.length).forEach(index -> {
                 int y = index / width;
                 int x = index % width;
-                bufferStack.set(x, y, frameList.get(index));
+                bufferStack.set(x, y, frame[index]);
             });
             semaphore.release();
         } catch (InterruptedException e) {
