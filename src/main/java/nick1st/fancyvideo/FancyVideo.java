@@ -1,9 +1,7 @@
 package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.sun.jna.NativeLibrary;
-import de.keksuccino.konkrete.rendering.CurrentScreenHandler;
 import net.minecraft.client.gui.screen.OptionsScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -18,8 +16,6 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.system.Pointer;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -91,11 +87,10 @@ public class FancyVideo {
             return new RV32BufferFormat(sourceWidth, sourceHeight);
         }
 
-    }
-
-    private void newVideoBuffer(int width, int height) {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        defaultRenderCallback.setImageBuffer(image);
+        private void newVideoBuffer(int width, int height) {
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            defaultRenderCallback.setImageBuffer(image);
+        }
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
@@ -155,12 +150,12 @@ public class FancyVideo {
             NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "");
             try {
                 String path = discoverNativeVLC();
-                LOGGER.info("Native VLC Found at '" + path + "'");
+                LOGGER.info("Native VLC Found at '{}'", path);
             } catch (UnsatisfiedLinkError e1) {
                 LOGGER.fatal("Couldn't load vlc binaries, crashing...");
             }
         } else if (SystemUtils.IS_OS_MAC) {
-            System.out.println();
+            LOGGER.error("Unsupported OS: Mac");
         } else if (SystemUtils.IS_OS_LINUX) {
             if (!new File("libvlc.so").isFile() || !new File("libvlc.so.12").isFile() || !new File("libvlc.so.12.0.0").isFile() || !new File("libvlccore.so").isFile() || !new File("libvlccore.so.9").isFile() || !new File("libvlccore.so.9.0.0").isFile()) {
                 LOGGER.info("Couldn't load vlc binaries, unpacking...");
@@ -181,7 +176,7 @@ public class FancyVideo {
             NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "");
             try {
                 String path = discoverNativeVLC();
-                LOGGER.info("Native VLC Found at '" + path + "'");
+                LOGGER.info("Native VLC Found at '{}'", path);
             } catch (UnsatisfiedLinkError e1) {
                 LOGGER.fatal("Couldn't load vlc binaries, crashing...");
             }
@@ -197,8 +192,8 @@ public class FancyVideo {
         discovery.discover();
         NativeDiscoveryStrategy nativeDiscoveryStrategy = discovery.successfulStrategy();
         nativeLibraryPath = discovery.discoveredPath();
-        LOGGER.debug("Strategy: " + nativeDiscoveryStrategy);
-        LOGGER.debug("Path: " + nativeLibraryPath);
+        LOGGER.debug("Strategy: {}", nativeDiscoveryStrategy);
+        LOGGER.debug("Path: {}", nativeLibraryPath);
 
         try {
             checkVersion();

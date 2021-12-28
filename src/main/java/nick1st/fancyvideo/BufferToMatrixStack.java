@@ -27,9 +27,9 @@ public class BufferToMatrixStack {
         bb.begin(7, DefaultVertexFormats.POSITION_COLOR);
     }
 
-    public static int[][] extractBytes (String ImageName) throws IOException {
+    public static int[][] extractBytes (String imageName) throws IOException {
         // open image
-        File imgPath = new File(ImageName);
+        File imgPath = new File(imageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
 
         int[][] matrix = new int[bufferedImage.getHeight()][bufferedImage.getWidth()];
@@ -54,10 +54,10 @@ public class BufferToMatrixStack {
             maxY = j;
         }
 
-        float r = (float)(color >> 16 & 255) / 255.0F;
-        float g = (float)(color >> 8 & 255) / 255.0F;
-        float b = (float)(color & 255) / 255.0F;
-        float a = (float)(color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+        float a = (color >> 24 & 255) / 255.0F;
 
         a = a * opacity;
 
@@ -72,9 +72,9 @@ public class BufferToMatrixStack {
     public void set(float x, float y, int color) {
 
         // Create color
-        float r = (float)(color >> 16 & 255) / 255.0F;
-        float g = (float)(color >> 8 & 255) / 255.0F;
-        float b = (float)(color & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
 
         bb.pos(matrix4f, x, y+1, 0.0F).color(r, g, b, 1F).endVertex();
         bb.pos(matrix4f, x+1, y+1, 0.0F).color(r, g, b, 1F).endVertex();
