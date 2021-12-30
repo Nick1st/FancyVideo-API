@@ -1,9 +1,11 @@
 package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.realmsclient.gui.screens.RealmsGenericErrorScreen;
 import com.sun.jna.NativeLibrary;
 import net.minecraft.client.gui.screen.OptionsScreen;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.WorldSelectionScreen;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -12,12 +14,13 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import nick1st.fancyvideo.api.MediaPlayer;
+import nick1st.fancyvideo.api.MediaPlayers;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
-import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
@@ -57,6 +60,9 @@ public class FancyVideo {
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger("fancyvideo");
+
+    // Temp Objects only for testing
+    int frameNumb = 0;
 
     public FancyVideo() {
         // Check or create VLC availability
@@ -221,6 +227,27 @@ public class FancyVideo {
     }
 
     private void renderBackground(MatrixStack matrixStack, Screen gui) {
+        if (gui instanceof RealmsGenericErrorScreen) {
+            if (!init) {
+                MediaPlayer.newMediaPlayer();
+                MediaPlayers.getPlayer(0).play("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+                MediaPlayers.getPlayer(0).volume(200);
+                init = true;
+            }
+            if (frameNumb != 0 & 0 == frameNumb % 10000) {
+                MediaPlayers.getPlayer(0).pause();
+            }
+            frameNumb++;
+            MediaPlayers.getPlayer(0).render(matrixStack, 0, 0);
+//            int[] frame = MediaPlayers.getPlayer(0).getFrame();
+//            BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
+//            IntStream.range(0, frame.length).forEach(index -> {
+//                int y = index / 1280;
+//                int x = index % 1280;
+//                bufferStack.set(x, y, frame[index]);
+//            });
+//            bufferStack.finishDrawing();
+        }
         if (!(gui instanceof OptionsScreen)) {
             return;
         }
