@@ -39,7 +39,7 @@ public final class MediaPlayer {
     }
 
     public void destroy() {
-        mediaPlayer.mediaPlayer().release();
+        mediaPlayer.release();
         MediaPlayers.destroy(id);
     }
 

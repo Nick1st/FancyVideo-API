@@ -16,7 +16,7 @@ import java.util.List;
 public final class MediaPlayers {
 
     private static final List<MediaPlayer> playerStore = new ArrayList<>();
-    static MediaPlayerFactory factory = new MediaPlayerFactory();
+    static MediaPlayerFactory factory = new MediaPlayerFactory("--no-metadata-network-access");
 
     private MediaPlayers() {
     }
@@ -46,5 +46,7 @@ public final class MediaPlayers {
 
     static synchronized void shutdown() {
         playerStore.forEach(MediaPlayer::destroy);
+        playerStore.forEach(playerStore::remove);
+        factory.release();
     }
 }
