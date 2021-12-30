@@ -125,11 +125,8 @@ public final class MediaPlayer {
         AdvancedFrameData frameAdvanced = getFrameAdvanced();
         int[] frame = frameAdvanced.frame;
         int width = frameAdvanced.width;
-        System.out.println(frame.length + " | " + width);
         BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
-        IntStream.range(0, frame.length).forEach(index -> {
-            bufferStack.set(index % width + x, index / width + y, frame[index]);
-        });
+        IntStream.range(0, frame.length).forEach(index -> bufferStack.set(index % width + x, index / width + y, frame[index]));
         bufferStack.finishDrawing();
         //Minecraft.getInstance().getTextureManager().getDynamicTextureLocation("Test", new SelfcleaningDynamicTexture(new NativeImage()));
         //AbstractGui.blit(matrixStack, 10, 10, 10, 0F, 0F, 64, 64, 64, 64);
