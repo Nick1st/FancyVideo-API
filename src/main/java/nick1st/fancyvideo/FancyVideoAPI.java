@@ -67,7 +67,7 @@ public class FancyVideoAPI {
     private final NativeDiscovery discovery = new NativeDiscovery();
 
     // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger("fancyvideo");
+    private static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
 
     // Temp Objects only for testing
     int frameNumb = 0;
@@ -129,7 +129,9 @@ public class FancyVideoAPI {
     private boolean onInit() {
         if (!new File(LibraryMapping.libVLC.linuxName).isFile() && !new File(LibraryMapping.libVLC.windowsName).isFile() &&  !new File(LibraryMapping.libVLC.macName).isFile()) {
             LOGGER.info("Unpacking natives...");
-            unpack();
+            if (!unpack()) {
+                LOGGER.warn("We do not bundle natives for your os. You can try to manually install VLC Player or libVLC for your System. FancyVideo-API only runs with libVLC Versions 4.0.0+");
+            }
         }
         NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), "");
         try {
@@ -221,17 +223,17 @@ public class FancyVideoAPI {
 
         try {
             checkVersion();
-        } catch (NoClassDefFoundError | Exception e) {
+        } catch (LinkageError e) {
             throw new NativeLibraryMappingException("Failed to properly initialise the native library", e);
         }
         return nativeLibraryPath;
     }
 
-    private void checkVersion() throws Exception {
+    private void checkVersion() throws LinkageError {
         LibVlcVersion version = new LibVlcVersion();
         LOGGER.debug(new Version(libvlc_get_version()));
         if (!version.isSupported()) {
-            throw new Exception(String.format("Failed to find minimum required VLC version %s, found %s", version.getRequiredVersion(), version.getVersion()));
+            throw new LinkageError(String.format("Failed to find minimum required VLC version %s, found %s", version.getRequiredVersion(), version.getVersion()));
         }
     }
 
@@ -253,7 +255,7 @@ public class FancyVideoAPI {
                 MediaPlayers.getPlayer(0).volume(200);
                 init = true;
             }
-            if (frameNumb != 0 & 0 == frameNumb % 10000) {
+            if (frameNumb != 0 && 0 == frameNumb % 10000) {
                 MediaPlayers.getPlayer(0).pause();
             }
             frameNumb++;
