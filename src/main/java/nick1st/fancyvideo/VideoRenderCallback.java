@@ -18,10 +18,10 @@ public class VideoRenderCallback extends RenderCallbackAdapter {
     @Override
     protected void onDisplay(MediaPlayer mediaPlayer, int[] buffer) {
         try {
-            FancyVideo.semaphore.acquire();
-            FancyVideo.frame = buffer.clone();
-            FancyVideo.width = width;
-            FancyVideo.semaphore.release();
+            FancyVideoAPI.semaphore.acquire();
+            FancyVideoAPI.frame = buffer.clone();
+            FancyVideoAPI.width = width;
+            FancyVideoAPI.semaphore.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
