@@ -15,6 +15,7 @@ public enum LibraryMapping {
 
     // logger
     libConsoleLogger("logger", "libconsole_logger_plugin"),
+    libFileLogger("logger", "libfile_logger_plugin"),
 
     // spu
     libLogo("spu", "liblogo_plugin"),
@@ -28,7 +29,21 @@ public enum LibraryMapping {
 
     // video_output
     libVDummy("video_output", "libwdummy_plugin"),
-    libVMem("video_output", "libvmem_plugin");
+    libVMem("video_output", "libvmem_plugin"),
+
+    // video_chroma
+    libI420RGB("video_chroma", "libi420_rgb_plugin"),
+
+    // access
+    libFilesystem("access", "libfilesystem_plugin"),
+    libHttp("access", "libhttp_plugin"),
+    libHttps("access", "libhttps_plugin"),
+
+    // misc
+    libTLS("misc", "libgnutls_plugin"),
+
+    // codec
+    libAVCodec("codec", "libavcodec_plugin");
 
 
     String windowsName;

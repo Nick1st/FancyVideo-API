@@ -1,14 +1,8 @@
 package nick1st.fancyvideo;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.realmsclient.gui.screens.RealmsGenericErrorScreen;
 import com.sun.jna.NativeLibrary;
-import net.minecraft.client.gui.screen.OptionsScreen;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -18,8 +12,7 @@ import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
-import nick1st.fancyvideo.api.MediaPlayer;
-import nick1st.fancyvideo.api.MediaPlayers;
+import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,20 +22,14 @@ import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
-import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
-import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
-import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallbackAdapter;
-import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 import uk.co.caprica.vlcj.support.version.Version;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_get_version;
 
@@ -52,25 +39,21 @@ public class FancyVideoAPI {
 
     // Constants
     public static final String PLUGINSDIR = "plugins/";
+    public static final String AMD_64 = "amd64";
 
-
-    private final CallbackMediaPlayerComponent mediaPlayerComponent;
-    private final VideoRenderCallback defaultRenderCallback = new VideoRenderCallback();
+    // Running DEBUG log generation?
+    private static final boolean DEBUG = true;
+    private final MatrixStackRenderTest matrixRenderTest;
 
     // Synced objects
     static Semaphore semaphore = new Semaphore(1, true);
     static int[] frame = new int[0];
     static int width;
 
-    private boolean init;
-
     private final NativeDiscovery discovery = new NativeDiscovery();
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
-
-    // Temp Objects only for testing
-    int frameNumb = 0;
 
     public FancyVideoAPI() {
         // Client only
@@ -84,9 +67,12 @@ public class FancyVideoAPI {
             System.exit(-9515);
         }
 
-        // Create our media callback
-        DefaultBufferFormatCallback defaultBufferFormatCallback = new DefaultBufferFormatCallback();
-        mediaPlayerComponent = new CallbackMediaPlayerComponent(null, null, null, true, null, defaultRenderCallback, defaultBufferFormatCallback, null);
+        // Debug?
+        if (DEBUG) {
+            matrixRenderTest = new MatrixStackRenderTest();
+            matrixRenderTest.init();
+            MinecraftForge.EVENT_BUS.addListener(matrixRenderTest::drawBackground);
+        }
 
         // Register the enqueueIMC and processIMC method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
@@ -94,24 +80,6 @@ public class FancyVideoAPI {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-    }
-
-    /**
-     * Default implementation of a buffer format callback that returns a buffer format suitable for rendering into a
-     * {@link BufferedImage}.
-     */
-    private class DefaultBufferFormatCallback extends BufferFormatCallbackAdapter {
-
-        @Override
-        public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            newVideoBuffer(sourceWidth, sourceHeight);
-            return new RV32BufferFormat(sourceWidth, sourceHeight);
-        }
-
-        private void newVideoBuffer(int width, int height) {
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            defaultRenderCallback.setImageBuffer(image);
-        }
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
@@ -127,6 +95,7 @@ public class FancyVideoAPI {
     }
 
     private boolean onInit() {
+        deleteOldLog();
         if (!new File(LibraryMapping.libVLC.linuxName).isFile() && !new File(LibraryMapping.libVLC.windowsName).isFile() &&  !new File(LibraryMapping.libVLC.macName).isFile()) {
             LOGGER.info("Unpacking natives...");
             if (!unpack()) {
@@ -152,8 +121,8 @@ public class FancyVideoAPI {
         archMap.put("i486", "x86");
         archMap.put("i586", "x86");
         archMap.put("i686", "x86");
-        archMap.put("x86_64", "amd64");
-        archMap.put("amd64", "amd64");
+        archMap.put("x86_64", AMD_64);
+        archMap.put(AMD_64, AMD_64);
         archMap.put("arm64", "arm64");
         archMap.put("powerpc", "ppc");
         String arch = archMap.get(SystemUtils.OS_ARCH);
@@ -237,59 +206,7 @@ public class FancyVideoAPI {
         }
     }
 
-    @SubscribeEvent
-    public void drawBackground(GuiScreenEvent.BackgroundDrawnEvent e) {
-        // Maybe we can achieve faster handling using one of those and native render and composition calls:
-        // RenderSystem.glBindBuffer();
-        // RenderSystem.glBufferData();
-        // Pointer
-        // RenderSystem.bindTexture();
-        renderBackground(e.getMatrixStack(), e.getGui());
-    }
-
-    private void renderBackground(MatrixStack matrixStack, Screen gui) {
-        if (gui instanceof RealmsGenericErrorScreen) {
-            if (!init) {
-                MediaPlayer.newMediaPlayer();
-                MediaPlayers.getPlayer(0).play("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-                MediaPlayers.getPlayer(0).volume(200);
-                init = true;
-            }
-            if (frameNumb != 0 && 0 == frameNumb % 10000) {
-                MediaPlayers.getPlayer(0).pause();
-            }
-            frameNumb++;
-            MediaPlayers.getPlayer(0).render(matrixStack, 0, 0);
-//            int[] frame = MediaPlayers.getPlayer(0).getFrame();
-//            BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
-//            IntStream.range(0, frame.length).forEach(index -> {
-//                int y = index / 1280;
-//                int x = index % 1280;
-//                bufferStack.set(x, y, frame[index]);
-//            });
-//            bufferStack.finishDrawing();
-        }
-        if (!(gui instanceof OptionsScreen)) {
-            return;
-        }
-        if (!init) {
-            LOGGER.info("Start playing");
-            mediaPlayerComponent.mediaPlayer().media().play("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-            init = true;
-        }
-        BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
-        try {
-            semaphore.acquire();
-            IntStream.range(0, frame.length).forEach(index -> {
-                int y = index / width;
-                int x = index % width;
-                bufferStack.set(x, y, frame[index]);
-            });
-            semaphore.release();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-        bufferStack.finishDrawing();
+    private void deleteOldLog() {
+        new File("logs/vlc.log").delete();
     }
 }

@@ -63,6 +63,14 @@ public final class MediaPlayer {
         mediaPlayer.mediaPlayer().media().prepare(mrl, options);
     }
 
+    public void playPrepared() {
+        mediaPlayer.mediaPlayer().controls().play();
+    }
+
+    public void preparePaused(String mrl, String... options) {
+        mediaPlayer.mediaPlayer().media().startPaused(mrl, options);
+    }
+
     public void pause() {
         mediaPlayer.mediaPlayer().controls().pause();
     }

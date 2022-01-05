@@ -16,7 +16,7 @@ import java.util.List;
 public final class MediaPlayers {
 
     private static final List<MediaPlayer> playerStore = new ArrayList<>();
-    static MediaPlayerFactory factory = new MediaPlayerFactory("--no-metadata-network-access");
+    static MediaPlayerFactory factory = new MediaPlayerFactory("--no-metadata-network-access", "--file-logging", "--logfile", "logs/vlc.log", "--logmode", "text", "--verbose", "2", "--no-quiet");
 
     private MediaPlayers() {
     }
