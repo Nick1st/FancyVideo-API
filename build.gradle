@@ -149,7 +149,7 @@ shadowJar { // Task to create a fat Jar containing our lib.
         })
     }
 
-    minimize() // Call minimize so we only get required (used) classes from vlcj
+    //minimize() // Call minimize so we only get required (used) classes from vlcj
 }
 
 task toJar (type: Jar) {

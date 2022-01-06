@@ -1,9 +1,10 @@
 package nick1st.fancyvideo.test;
 
-import com.mojang.realmsclient.gui.screens.RealmsGenericErrorScreen;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.realms.RealmsScreen;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import nick1st.fancyvideo.FancyVideoAPI;
 import nick1st.fancyvideo.api.MediaPlayer;
 import nick1st.fancyvideo.api.MediaPlayers;
 
@@ -13,6 +14,7 @@ public class MatrixStackRenderTest {
     int frameNumb = 0;
 
     public void init() {
+        FancyVideoAPI.LOGGER.info("Setting up test media player");
         id = MediaPlayer.newMediaPlayer();
         //MediaPlayers.getPlayer(id).prepare("DarkDays.mov");
         MediaPlayers.getPlayer(id).prepare("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
@@ -22,7 +24,8 @@ public class MatrixStackRenderTest {
     @SubscribeEvent
     public void drawBackground(GuiScreenEvent.BackgroundDrawnEvent e) {
         Screen gui = e.getGui();
-        if (gui instanceof RealmsGenericErrorScreen) {
+        if (gui instanceof RealmsScreen) {
+            FancyVideoAPI.LOGGER.info("Drawing");
             if (!init) {
                 MediaPlayers.getPlayer(0).playPrepared();
             }

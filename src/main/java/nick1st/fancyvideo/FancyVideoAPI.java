@@ -53,9 +53,15 @@ public class FancyVideoAPI {
     private final NativeDiscovery discovery = new NativeDiscovery();
 
     // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
+    public static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
 
     public FancyVideoAPI() {
+        //Native.loadLibrary((Platform.isWindows() ? "msvcrt" : "c"), LibC.class);
+        //LibC.INSTANCE = Native.loadLibrary((Platform.isWindows() ? "msvcrt" : "c"), LibC.class);
+
+        // Temp JNA Fix?
+        // System.setProperty("jna.nosys", "true");
+
         // Client only
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
