@@ -3,13 +3,13 @@ package nick1st.fancyvideo;
 import com.sun.jna.NativeLibrary;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import nick1st.fancyvideo.test.MatrixStackRenderTest;
@@ -26,9 +26,10 @@ import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 import uk.co.caprica.vlcj.support.version.Version;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_get_version;
@@ -41,31 +42,24 @@ public class FancyVideoAPI {
     public static final String PLUGINSDIR = "plugins/";
     public static final String AMD_64 = "amd64";
 
-    // Running DEBUG log generation?
+    // Running DEBUG?
     private static final boolean DEBUG = true;
-    private final MatrixStackRenderTest matrixRenderTest;
-
-    // Synced objects
-    static Semaphore semaphore = new Semaphore(1, true);
-    static int[] frame = new int[0];
-    static int width;
+    private MatrixStackRenderTest matrixRenderTest;
 
     private final NativeDiscovery discovery = new NativeDiscovery();
 
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
 
+    // First render Tick
+    private boolean renderTick;
+
     public FancyVideoAPI() {
-        //Native.loadLibrary((Platform.isWindows() ? "msvcrt" : "c"), LibC.class);
-        //LibC.INSTANCE = Native.loadLibrary((Platform.isWindows() ? "msvcrt" : "c"), LibC.class);
-
-        // Temp JNA Fix?
-        // System.setProperty("jna.nosys", "true");
-
         // Client only
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
             LOGGER.warn("## WARNING ## 'FancyVideo API' is a client mod and has no effect when loaded on a server!");
+            return;
         }
 
         // Init natives
@@ -73,27 +67,39 @@ public class FancyVideoAPI {
             System.exit(-9515);
         }
 
+        // Setup API
+//        EmptyMediaPlayer.getInstance();
+
         // Debug?
         if (DEBUG) {
-            matrixRenderTest = new MatrixStackRenderTest();
-            matrixRenderTest.init();
-            MinecraftForge.EVENT_BUS.addListener(matrixRenderTest::drawBackground);
+            MinecraftForge.EVENT_BUS.addListener(this::renderTick);
         }
 
         // Register the enqueueIMC and processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
+//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
+//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    public void renderTick(TickEvent.RenderTickEvent event) {
+        if (!renderTick) {
+            LOGGER.info("Tick");
+            matrixRenderTest = new MatrixStackRenderTest();
+            matrixRenderTest.init();
+            MinecraftForge.EVENT_BUS.addListener(matrixRenderTest::drawBackground);
+            renderTick = true;
+        }
+    }
+
     private void enqueueIMC(final InterModEnqueueEvent event) {
-        InterModComms.sendTo("konkrete", "videoPluginInit", () -> {
-            LOGGER.info("Hello world from vlcj plugin");
-            return "Hello from vlcj";
+        InterModComms.sendTo("", "", () -> {
+            LOGGER.info("");
+            return "";
         });
     }
+
     private void processIMC(final InterModProcessEvent event) {
         LOGGER.info("Got IMC {}", event.getIMCStream().
                 map(m -> m.getMessageSupplier().get()).
@@ -213,6 +219,12 @@ public class FancyVideoAPI {
     }
 
     private void deleteOldLog() {
-        new File("logs/vlc.log").delete();
+        try {
+            Files.delete(new File("logs/vlc.log").toPath());
+        } catch (NoSuchFileException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

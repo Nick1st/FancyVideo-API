@@ -27,8 +27,8 @@
     </Appenders>
     <Loggers>
         <!-- make sure mojang's logging is set to 'info' so that their LOGGER.isDebugEnabled() behavior isn't active -->
-        <Logger level="info" name="com.mojang"/>
-        <Logger level="info" name="net.minecraft"/>
+        <Logger level="debug" name="com.mojang"/>
+        <Logger level="debug" name="net.minecraft"/>
         <Logger level="debug" name="fancyvideo"/>
         <Root level="info">
             <filters>

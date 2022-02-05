@@ -1,32 +1,49 @@
 package nick1st.fancyvideo.api;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.NativeImage;
+import net.minecraft.util.ResourceLocation;
 import nick1st.fancyvideo.BufferToMatrixStack;
+import nick1st.fancyvideo.FancyVideoAPI;
 import uk.co.caprica.vlcj.player.component.CallbackMediaListPlayerComponent;
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 
-public final class MediaPlayer {
+/**
+ * Main class of the MediaPlayerAPI.
+ * Call {@link #getNew()} to create a new media player. <br>
+ * Use {@link MediaPlayers#getPlayer(int)} to get the reference of your player. <br>
+ * Please call {@link #destroy()} when you don't need it anymore. <br>
+ * <b>Your player may get delete on certain event calls (e.g. {link ShutdownEvent}). You need to be aware of this. </b>
+ * <b>Use {@link MediaPlayers#isValid(int)} to check if the player can be used.</b>
+ */
+public class MediaPlayer {
     // Important stuff
-    private CallbackMediaPlayerComponent mediaPlayer;
-    private MediaPlayerCallback callback = new MediaPlayerCallback(0, 0, this);
+    private final CallbackMediaPlayerComponent mediaPlayerComponent;
+    private final MediaPlayerCallback callback = new MediaPlayerCallback(0, this);
     private final int id;
 
     // The last rendered frame is stored here
     private int[] frame = new int[0];
     private int width;
-    private ByteBuffer byteBuffer = null;
-    private Semaphore semaphore = new Semaphore(1, true);
+    private final Semaphore semaphore = new Semaphore(1, true);
 
-    private MediaPlayer() {
-        mediaPlayer = new CallbackMediaListPlayerComponent(MediaPlayers.factory, null, null, true, null, callback, new DefaultBufferFormatCallback(), null);
+    // Image Frame
+    private NativeImage image = new NativeImage(1, 1, true);
+    private final SelfCleaningDynamicTexture dyTex = new SelfCleaningDynamicTexture(image);
+    private final ResourceLocation loc;
+
+    MediaPlayer() {
+        mediaPlayerComponent = new CallbackMediaListPlayerComponent(MediaPlayers.factory, null, null, true, null, callback, new DefaultBufferFormatCallback(), null);
         id = MediaPlayers.addPlayer(this);
+        init();
+        loc = Minecraft.getInstance().getTextureManager().register("video_texture" + id, dyTex);
     }
 
     /**
@@ -34,17 +51,26 @@ public final class MediaPlayer {
      * Please call {@link #destroy()} when you don't need it anymore
      * @return ID of the new MediaPlayer (keep it, it's important!)
      */
-    public static int newMediaPlayer() {
+    public static int getNew() {
         return new MediaPlayer().id;
     }
 
+    /**
+     * Init an empty frame (Hex: 0x000000; Alpha: 0x00)
+     */
+    public void init() {
+        image = new NativeImage(1, 1, true);
+        image.setPixelRGBA(0, 0, 0);
+        dyTex.setPixels(image);
+    }
+
     public void destroy() {
-        mediaPlayer.release();
-        MediaPlayers.destroy(id);
+        mediaPlayerComponent.release();
+        MediaPlayers.removePlayer(id);
     }
 
     public void play(String mrl, String... options) {
-        mediaPlayer.mediaPlayer().media().play(mrl, options);
+        mediaPlayerComponent.mediaPlayer().media().play(mrl, options);
     }
 
     /**
@@ -52,27 +78,27 @@ public final class MediaPlayer {
      * @param percentage Reaches 0 - 200
      */
     public void volume(int percentage) {
-        mediaPlayer.mediaPlayer().audio().setVolume(percentage);
+        mediaPlayerComponent.mediaPlayer().audio().setVolume(percentage);
     }
 
     public void mute() {
-        mediaPlayer.mediaPlayer().audio().mute();
+        mediaPlayerComponent.mediaPlayer().audio().mute();
     }
 
     public void prepare(String mrl, String... options) {
-        mediaPlayer.mediaPlayer().media().prepare(mrl, options);
+        mediaPlayerComponent.mediaPlayer().media().prepare(mrl, options);
     }
 
     public void playPrepared() {
-        mediaPlayer.mediaPlayer().controls().play();
+        mediaPlayerComponent.mediaPlayer().controls().play();
     }
 
     public void preparePaused(String mrl, String... options) {
-        mediaPlayer.mediaPlayer().media().startPaused(mrl, options);
+        mediaPlayerComponent.mediaPlayer().media().startPaused(mrl, options);
     }
 
     public void pause() {
-        mediaPlayer.mediaPlayer().controls().pause();
+        mediaPlayerComponent.mediaPlayer().controls().pause();
     }
 
     public int[] getFrame() {
@@ -83,6 +109,7 @@ public final class MediaPlayer {
             return currentFrame;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
         return new int[0];
     }
@@ -95,6 +122,7 @@ public final class MediaPlayer {
             return currentFrame;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
         return new AdvancedFrameData(new int[0], 0);
     }
@@ -107,26 +135,16 @@ public final class MediaPlayer {
             semaphore.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
-    }
-
-    void setByteBuffer(ByteBuffer byteBuffer) {
-        try {
-            semaphore.acquire();
-                this.byteBuffer = byteBuffer;
-            semaphore.release();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
     /**
-     *
-     * @return This returns the true MediaPlayer, allowing you to use (nearly) all functions of libvlc.
+     * @return This returns the true {@link CallbackMediaListPlayerComponent}, allowing you to use (nearly) all functions of libvlc.
      * Only use when you know what you're doing.
      */
     public CallbackMediaPlayerComponent getTrueMediaPlayer() {
-        return mediaPlayer;
+        return mediaPlayerComponent;
     }
 
     public MatrixStack render(MatrixStack matrixStack, int x, int y) {
@@ -136,9 +154,41 @@ public final class MediaPlayer {
         BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
         IntStream.range(0, frame.length).forEach(index -> bufferStack.set(index % width + x, index / width + y, frame[index]));
         bufferStack.finishDrawing();
-        //Minecraft.getInstance().getTextureManager().getDynamicTextureLocation("Test", new SelfcleaningDynamicTexture(new NativeImage()));
-        //AbstractGui.blit(matrixStack, 10, 10, 10, 0F, 0F, 64, 64, 64, 64);
         return matrixStack;
+    }
+
+    /**
+     * Renders the current frame to a {@link ResourceLocation} for further use.
+     * @return The {@link ResourceLocation} rendered to.
+     */
+    public ResourceLocation renderImage() {
+        AdvancedFrameData frameAdvanced = getFrameAdvanced();
+        int[] frame = frameAdvanced.frame;
+        int width = frameAdvanced.width;
+        if (width == 0)  {
+            return loc;
+        }
+        image = new NativeImage(width, frame.length / width, true);
+        IntStream.range(0, frame.length).forEach(index -> {
+            int x = index % width;
+            int y = index / width;
+
+            int color = frame[index];
+            color <<= 8;
+            color |= 0xFF;
+            color = Integer.reverseBytes(color);
+
+            image.setPixelRGBA(x, y, color);
+        });
+        dyTex.setPixels(image);
+        return loc;
+    }
+
+    /**
+     * Binds the current frame for further use.
+     */
+    public void bindFrame() {
+        Minecraft.getInstance().textureManager.bind(renderImage());
     }
 
 
@@ -148,9 +198,9 @@ public final class MediaPlayer {
     private class DefaultBufferFormatCallback extends BufferFormatCallbackAdapter {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            System.out.println(sourceWidth + " | " + sourceHeight);
+            FancyVideoAPI.LOGGER.info("Dimensions of player {} video: {} | {}", id, sourceWidth, sourceHeight);
             width = sourceWidth;
-            callback.setBuffer(sourceWidth, sourceHeight, new int[sourceWidth * sourceHeight]);
+            callback.setBuffer(sourceWidth, new int[sourceWidth * sourceHeight]);
             return new RV32BufferFormat(sourceWidth, sourceHeight);
         }
     }

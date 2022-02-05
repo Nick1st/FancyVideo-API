@@ -7,10 +7,10 @@ import java.util.List;
 
 /**
  * This class manages the media players. <br>
- * Most methods are for internal use only. Use {@link MediaPlayer#newMediaPlayer()} to create a new {@link MediaPlayer} and get its unique id.
+ * Most methods are for internal use only. Use {@link MediaPlayer#getNew()} to create a new {@link MediaPlayer} and get its unique id.
  * Use {@link #getPlayer(int)} to get your reference afterwards. <br>
  * If your player is not required anymore, use {@link MediaPlayer#destroy()} to free its resources. Calling {@link #getPlayer(int)} on a removed or
- * not existing player may throw a {@link IndexOutOfBoundsException} or return {@link null}. Use {@link #isValid(int)} to check if your reference is valid. <br>
+ * not existing player may <b>throw a {@link IndexOutOfBoundsException} or return {@link null}</b>. Use {@link #isValid(int)} to check if your reference is valid. <br>
  * Your object may get removed if a {link ShutdownEvent} fires, as this {@link #shutdown()} the library.
  */
 public final class MediaPlayers {
@@ -22,15 +22,14 @@ public final class MediaPlayers {
     }
 
     static synchronized int addPlayer(MediaPlayer player) {
-        if (!playerStore.contains(null)) {
+        if (!playerStore.contains(player)) {
             playerStore.add(player);
-        } else {
-            playerStore.add(playerStore.indexOf(null), player);
         }
         return playerStore.indexOf(player);
     }
 
-    static synchronized void destroy(int id) {
+    static synchronized void removePlayer(int id) {
+        getPlayer(id).destroy();
         playerStore.set(id, null);
     }
 

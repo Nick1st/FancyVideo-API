@@ -2,37 +2,50 @@
 //                                        Build Plugin Declaration
 //#####################################################################################################################
 buildscript {
+    // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
     repositories {
-        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
-        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://maven.minecraftforge.net' } // Forge Maven
+        gradlePluginPortal() // Repo for Gradle plugins, we need to get ShadowJar, as we need to create a fat jar.
         mavenCentral()
-        gradlePluginPortal() // Repo for Gradle plugins, we need to get ShadowJar.
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.0' // ShadowJar, we need to create a fat jar.
+        classpath group: 'gradle.plugin.com.github.johnrengelman', name: 'shadow', version: '7.1.+', changing: true
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'com.github.johnrengelman.shadow' // Apply ShadowJar
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
 
-group = 'nick1st'
-version = '1.0-SNAPSHOT'
+
+
+//#####################################################################################################################
+//                                             Artefact Specification
+//#####################################################################################################################
+version = '1.16.5-0.0.1.0-beta'
+group = 'nick1st.fancyvideo'
+archivesBaseName = 'FancyVideo-API'
 
 
 
 //#####################################################################################################################
 //                                      Configs for different gradle Plugins
 //#####################################################################################################################
-
-java {
-    archivesBaseName = 'FancyVideo-API'
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
+configurations.all {
+    resolutionStrategy {
+        force 'net.java.dev.jna:jna:4.5.2', 'net.java.dev.jna:jna-platform:4.5.2'
+    }
 }
 
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version'))
+
 minecraft {
-    mappings channel: 'snapshot', version: '20210309-1.16.5'
+    mappings channel: 'official', version: '1.16.5'
 
     // Default run configurations.
     runs {
@@ -76,7 +89,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.8'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.23'
     implementation("uk.co.caprica:vlcj:${vlcj_version}") // vlcJ
 }
 
@@ -95,7 +108,7 @@ jar {
     //noinspection GroovyAssignabilityCheck
     manifest {
         attributes([
-                "Specification-Title"     : "vlcjtest",
+                "Specification-Title"     : "fancyvideo-api",
                 "Specification-Vendor"    : "Nick1st",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
@@ -140,14 +153,36 @@ task toFinalJar (type: Jar) {
     doLast {
         delete(files("${project.buildDir}/libs/buildFolder", "${project.buildDir}/libs/${project.name}-${project.version}-fat.jar"))
     }
+    doLast {
+        reobfJar
+    }
 }
 
 task buildRelease () {
+    dependsOn 'build'
     dependsOn 'shadowJar'
     dependsOn 'toFinalJar'
 
+    tasks.findByName('shadowJar').mustRunAfter 'build'
     tasks.findByName('toFinalJar').mustRunAfter 'shadowJar'
 }
 
 jar.finalizedBy('reobfJar')
-shadowJar.finalizedBy('reobfJar')
+
+publish.dependsOn('reobfJar')
+
+//#####################################################################################################################
+//                                                   Publish
+//#####################################################################################################################
+publishing{
+    publications{
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+}

@@ -1,7 +1,6 @@
 package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -19,8 +18,8 @@ public class BufferToMatrixStack {
     public BufferBuilder bb;
 
     public BufferToMatrixStack(MatrixStack matrix) {
-        matrix4f = matrix.getLast().getMatrix();
-        bb = Tessellator.getInstance().getBuffer();
+        matrix4f = matrix.last().pose(); //getLast().getMatrix();
+        bb = Tessellator.getInstance().getBuilder();
         RenderSystem.disableTexture();
         // Required for transparency
         RenderSystem.defaultBlendFunc();
@@ -29,8 +28,8 @@ public class BufferToMatrixStack {
     }
 
     public BufferToMatrixStack(MatrixStack matrix, Tessellator tessellator) {
-        matrix4f = matrix.getLast().getMatrix();
-        bb = tessellator.getBuffer();
+        matrix4f = matrix.last().pose();
+        bb = tessellator.getBuilder();
         bb.begin(7, DefaultVertexFormats.POSITION_COLOR);
     }
 
@@ -69,10 +68,10 @@ public class BufferToMatrixStack {
 
         a = a * opacity;
 
-        bb.pos(matrix4f, minX, maxY, 0.0F).color(r, g, b, a).endVertex();
-        bb.pos(matrix4f, maxX, maxY, 0.0F).color(r, g, b, a).endVertex();
-        bb.pos(matrix4f, maxX, minY, 0.0F).color(r, g, b, a).endVertex();
-        bb.pos(matrix4f, minX, minY, 0.0F).color(r, g, b, a).endVertex();
+        bb.vertex(matrix4f, minX, maxY, 0.0F).color(r, g, b, a).endVertex();
+        bb.vertex(matrix4f, maxX, maxY, 0.0F).color(r, g, b, a).endVertex();
+        bb.vertex(matrix4f, maxX, minY, 0.0F).color(r, g, b, a).endVertex();
+        bb.vertex(matrix4f, minX, minY, 0.0F).color(r, g, b, a).endVertex();
 
         return this;
     }
@@ -84,22 +83,22 @@ public class BufferToMatrixStack {
         float g = (color >> 8 & 255) / 255.0F;
         float b = (color & 255) / 255.0F;
 
-        bb.pos(matrix4f, x, y+1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.pos(matrix4f, x+1, y+1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.pos(matrix4f, x+1, y, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.pos(matrix4f, x, y, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x, y+1, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x+1, y+1, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x+1, y, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x, y, 0.0F).color(r, g, b, 1F).endVertex();
     }
 
     public void finishDrawing() {
-        bb.finishDrawing();
-        WorldVertexBufferUploader.draw(bb);
+        bb.end(); //finishDrawing();
+        WorldVertexBufferUploader.end(bb);
         RenderSystem.enableTexture();
         // Required for transparency
         RenderSystem.disableBlend();
     }
 
     public void finishDrawingTest() {
-        bb.finishDrawing();
-        WorldVertexBufferUploader.draw(bb);
+        bb.end();
+        WorldVertexBufferUploader.end(bb);
     }
 }

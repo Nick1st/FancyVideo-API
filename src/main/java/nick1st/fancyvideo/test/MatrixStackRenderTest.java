@@ -1,5 +1,8 @@
 package nick1st.fancyvideo.test;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.realms.RealmsScreen;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -15,9 +18,10 @@ public class MatrixStackRenderTest {
 
     public void init() {
         FancyVideoAPI.LOGGER.info("Setting up test media player");
-        id = MediaPlayer.newMediaPlayer();
+        id = MediaPlayer.getNew();
         //MediaPlayers.getPlayer(id).prepare("DarkDays.mov");
         MediaPlayers.getPlayer(id).prepare("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+        //MediaPlayers.getPlayer(id).prepare("ColorTest.mov");
         MediaPlayers.getPlayer(id).volume(200);
     }
 
@@ -25,7 +29,7 @@ public class MatrixStackRenderTest {
     public void drawBackground(GuiScreenEvent.BackgroundDrawnEvent e) {
         Screen gui = e.getGui();
         if (gui instanceof RealmsScreen) {
-            FancyVideoAPI.LOGGER.info("Drawing");
+            FancyVideoAPI.LOGGER.trace("Drawing");
             if (!init) {
                 MediaPlayers.getPlayer(0).playPrepared();
             }
@@ -33,7 +37,16 @@ public class MatrixStackRenderTest {
                 MediaPlayers.getPlayer(0).pause();
             }
             frameNumb++;
-            MediaPlayers.getPlayer(id).render(e.getMatrixStack(), 0, 0);
+
+            // Generic Render Code for Screens
+            int width = Minecraft.getInstance().screen.width;
+            int height = Minecraft.getInstance().screen.height;
+
+            MediaPlayers.getPlayer(id).bindFrame();
+            RenderSystem.enableBlend();
+            RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
+            AbstractGui.blit(e.getMatrixStack(), 0, 0/*x, y*/, 0.0F, 0.0F, width, height, width, height);
+            RenderSystem.disableBlend();
         }
     }
 }

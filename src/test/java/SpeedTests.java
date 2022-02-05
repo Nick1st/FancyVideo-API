@@ -4,10 +4,9 @@ import nick1st.fancyvideo.BufferToMatrixStack;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,7 +17,8 @@ public class SpeedTests {
     public static long[] timestamps = new long[10];
 
     public static void main(String[] args) {
-        try {
+        colorFlipper();
+  /*      try {
             image = BufferToMatrixStack.extractBytes("D:\\Programmieren\\vlcj-test-mod\\run\\image.png");
 
 
@@ -55,7 +55,7 @@ public class SpeedTests {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     public static void process1() {
@@ -78,5 +78,49 @@ public class SpeedTests {
             bufferStack.set(x, y, image2[index]);
         });
         bufferStack.finishDrawingTest();
+    }
+
+    public static void colorFlipper() {
+        System.out.println("Preparing Color Flipper");
+        ts1 = System.nanoTime();
+        Random ran = new Random(8327832184671374183L);
+        int[] colors = new int[3456000];
+        for (int i = 0; i < colors.length; i++) {
+            colors[i] = ran.nextInt();
+        }
+        ts2 = System.nanoTime();
+        System.out.println("Finished after " + (ts2 - ts1) + " Nanos");
+
+        System.out.println("Running Complex Stream Color Flipper");
+        ts1 = System.nanoTime();
+        int[] streamColors = new int[3456000];
+        IntStream.range(0, colors.length).forEach(index -> {
+            int b = (colors[index] & 255);
+            int g = (colors[index] >> 8 & 255);
+            int r = (colors[index] >> 16 & 255);
+            int a = (colors[index] >> 24 & 255);
+            a |= 0xFF;
+            streamColors[index] = (a << 24) + (b << 16) + (g << 8) + (r);
+        });
+        ts2 = System.nanoTime();
+        System.out.println("Finished after " + (ts2 - ts1) + " Nanos");
+
+        System.out.println("Running Advanced Color Flipper");
+        ts1 = System.nanoTime();
+        int[] advancedColors = new int[3456000];
+        IntStream.range(0, colors.length).forEach(index -> {
+            int color = colors[index];
+            color <<= 8;
+            color |= 0xFF;
+            color = Integer.reverseBytes(color);
+            advancedColors[index] = color;
+        });
+        ts2 = System.nanoTime();
+        System.out.println("Finished after " + (ts2 - ts1) + " Nanos");
+
+        System.out.println("Validate Results: ");
+        for (int i = 0; i < 10; i++) {
+            System.out.println(streamColors[i] + " | " + advancedColors[i]);
+        }
     }
 }

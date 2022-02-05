@@ -9,9 +9,9 @@ public enum LibraryMapping {
     libEqualizer("audio_filter", "libequalizer_plugin"),
 
     // audio_output
-    libADummy("audio_output", "libadummy_plugin"),
-    libAMem("audio_output", "libamem_plugin"),
-    libDirectSound("audio_output", "libdirectsound_plugin"),
+    libADummy(Constants.AUDIO_OUTPUT, "libadummy_plugin"),
+    libAMem(Constants.AUDIO_OUTPUT, "libamem_plugin"),
+    libDirectSound(Constants.AUDIO_OUTPUT, "libdirectsound_plugin"),
 
     // logger
     libConsoleLogger("logger", "libconsole_logger_plugin"),
@@ -22,10 +22,10 @@ public enum LibraryMapping {
     libMarq("spu", "libmarq_plugin"),
 
     // video_filter // TODO: Find out if we need all of those
-    libAdjust("video_filter", "libadjust_plugin"),
-    libAlphaMask("video_filter", "libalphamask_plugin"),
-    libDeinterlace("video_filter", "libdeinterlace_plugin"),
-    libFPS("video_filter", "libfps_plugin"),
+    libAdjust(Constants.VIDEO_FILTER, "libadjust_plugin"),
+    libAlphaMask(Constants.VIDEO_FILTER, "libalphamask_plugin"),
+    libDeinterlace(Constants.VIDEO_FILTER, "libdeinterlace_plugin"),
+    libFPS(Constants.VIDEO_FILTER, "libfps_plugin"),
 
     // video_output
     libVDummy("video_output", "libwdummy_plugin"),
@@ -35,9 +35,9 @@ public enum LibraryMapping {
     libI420RGB("video_chroma", "libi420_rgb_plugin"),
 
     // access
-    libFilesystem("access", "libfilesystem_plugin"),
-    libHttp("access", "libhttp_plugin"),
-    libHttps("access", "libhttps_plugin"),
+    libFilesystem(Constants.ACCESS, "libfilesystem_plugin"),
+    libHttp(Constants.ACCESS, "libhttp_plugin"),
+    libHttps(Constants.ACCESS, "libhttps_plugin"),
 
     // misc
     libTLS("misc", "libgnutls_plugin"),
