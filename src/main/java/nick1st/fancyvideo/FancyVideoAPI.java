@@ -1,17 +1,15 @@
 package nick1st.fancyvideo;
 
-import com.sun.jna.NativeLibrary;
+import com.sun.jna.NativeLibrary; //NOSONAR This class doesn't exist in the java api
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ExtensionPoint;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
+import nick1st.fancyvideo.api.EmptyMediaPlayer;
 import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -30,17 +28,14 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import static nick1st.fancyvideo.Constants.AMD_64;
+import static nick1st.fancyvideo.Constants.PLUGINSDIR;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_get_version;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("fancyvideo-api")
 public class FancyVideoAPI {
-
-    // Constants
-    public static final String PLUGINSDIR = "plugins/";
-    public static final String AMD_64 = "amd64";
 
     // Running DEBUG?
     private static final boolean DEBUG = true;
@@ -75,10 +70,6 @@ public class FancyVideoAPI {
             MinecraftForge.EVENT_BUS.addListener(this::renderTick);
         }
 
-        // Register the enqueueIMC and processIMC method for modloading
-//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-//        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -91,19 +82,6 @@ public class FancyVideoAPI {
             MinecraftForge.EVENT_BUS.addListener(matrixRenderTest::drawBackground);
             renderTick = true;
         }
-    }
-
-    private void enqueueIMC(final InterModEnqueueEvent event) {
-        InterModComms.sendTo("", "", () -> {
-            LOGGER.info("");
-            return "";
-        });
-    }
-
-    private void processIMC(final InterModProcessEvent event) {
-        LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m -> m.getMessageSupplier().get()).
-                collect(Collectors.toList()));
     }
 
     private boolean onInit() {
@@ -173,6 +151,7 @@ public class FancyVideoAPI {
                     return false;
             }
             try {
+                //noinspection ResultOfMethodCallIgnored
                 new File(PLUGINSDIR).mkdir();
                 extract(loader, path, file, mapping.isPlugin);
             } catch (IOException e) {
@@ -184,6 +163,7 @@ public class FancyVideoAPI {
 
     private void extract(ClassLoader loader, String path, String file, boolean isPlugin) throws IOException {
         if (isPlugin) {
+            //noinspection ResultOfMethodCallIgnored
             new File(PLUGINSDIR + file).getParentFile().mkdirs();
         }
         InputStream in = isPlugin ? loader.getResourceAsStream(path + PLUGINSDIR + file) : loader.getResourceAsStream(path + file);
@@ -222,6 +202,7 @@ public class FancyVideoAPI {
         try {
             Files.delete(new File("logs/vlc.log").toPath());
         } catch (NoSuchFileException ignored) {
+            // Ignored
         } catch (IOException e) {
             e.printStackTrace();
         }

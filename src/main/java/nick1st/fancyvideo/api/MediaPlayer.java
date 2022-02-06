@@ -30,11 +30,10 @@ public class MediaPlayer {
     private final int id;
 
     // The last rendered frame is stored here
-    private int[] frame = new int[0];
-    private int width;
+    private AdvancedFrame videoStream = new AdvancedFrame(new int[0], 0);
     private final Semaphore semaphore = new Semaphore(1, true);
 
-    // Image Frame
+    // Image
     private NativeImage image = new NativeImage(1, 1, true);
     private final SelfCleaningDynamicTexture dyTex = new SelfCleaningDynamicTexture(image);
     private final ResourceLocation loc;
@@ -74,7 +73,6 @@ public class MediaPlayer {
     }
 
     /**
-     *
      * @param percentage Reaches 0 - 200
      */
     public void volume(int percentage) {
@@ -104,7 +102,7 @@ public class MediaPlayer {
     public int[] getFrame() {
         try {
             semaphore.acquire();
-            int[] currentFrame = frame.clone();
+            int[] currentFrame = new AdvancedFrame(videoStream).frame;
             semaphore.release();
             return currentFrame;
         } catch (InterruptedException e) {
@@ -114,24 +112,23 @@ public class MediaPlayer {
         return new int[0];
     }
 
-    public AdvancedFrameData getFrameAdvanced() {
+    public AdvancedFrame getFrameAdvanced() {
         try {
             semaphore.acquire();
-            AdvancedFrameData currentFrame = new AdvancedFrameData(frame.clone(), width);
+            AdvancedFrame currentFrame = new AdvancedFrame(videoStream);
             semaphore.release();
             return currentFrame;
         } catch (InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }
-        return new AdvancedFrameData(new int[0], 0);
+        return new AdvancedFrame(new int[0], 0);
     }
 
-    void setFrame(int[] frame, int width) {
+    void setFrame(AdvancedFrame in) {
         try {
             semaphore.acquire();
-            this.frame = frame;
-            this.width = width;
+            videoStream = new AdvancedFrame(in);
             semaphore.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -148,7 +145,7 @@ public class MediaPlayer {
     }
 
     public MatrixStack render(MatrixStack matrixStack, int x, int y) {
-        AdvancedFrameData frameAdvanced = getFrameAdvanced();
+        AdvancedFrame frameAdvanced = getFrameAdvanced();
         int[] frame = frameAdvanced.frame;
         int width = frameAdvanced.width;
         BufferToMatrixStack bufferStack = new BufferToMatrixStack(matrixStack);
@@ -162,7 +159,7 @@ public class MediaPlayer {
      * @return The {@link ResourceLocation} rendered to.
      */
     public ResourceLocation renderImage() {
-        AdvancedFrameData frameAdvanced = getFrameAdvanced();
+        AdvancedFrame frameAdvanced = getFrameAdvanced();
         int[] frame = frameAdvanced.frame;
         int width = frameAdvanced.width;
         if (width == 0)  {
@@ -198,9 +195,8 @@ public class MediaPlayer {
     private class DefaultBufferFormatCallback extends BufferFormatCallbackAdapter {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            FancyVideoAPI.LOGGER.info("Dimensions of player {} video: {} | {}", id, sourceWidth, sourceHeight);
-            width = sourceWidth;
-            callback.setBuffer(sourceWidth, new int[sourceWidth * sourceHeight]);
+            FancyVideoAPI.LOGGER.info("Dimensions of player {}: {} | {}", id, sourceWidth, sourceHeight);
+            callback.setBuffer(new AdvancedFrame(new int[sourceWidth * sourceHeight], sourceWidth));
             return new RV32BufferFormat(sourceWidth, sourceHeight);
         }
     }

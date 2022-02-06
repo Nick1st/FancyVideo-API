@@ -11,13 +11,13 @@ public class MediaPlayerCallback extends RenderCallbackAdapter  {
         this.mediaPlayer = mediaPlayer;
     }
 
-    protected void setBuffer(int width, int[] buffer) {
-        this.width = width;
-        setBuffer(buffer);
+    void setBuffer(AdvancedFrame buffer) {
+        this.width = buffer.width;
+        setBuffer(buffer.frame);
     }
 
     @Override
     protected void onDisplay(uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer, int[] buffer) {
-        this.mediaPlayer.setFrame(buffer.clone(), width);
+        this.mediaPlayer.setFrame(new AdvancedFrame(buffer, width));
     }
 }

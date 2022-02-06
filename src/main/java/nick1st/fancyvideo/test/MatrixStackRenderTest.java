@@ -3,7 +3,6 @@ package nick1st.fancyvideo.test;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.realms.RealmsScreen;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,14 +26,12 @@ public class MatrixStackRenderTest {
 
     @SubscribeEvent
     public void drawBackground(GuiScreenEvent.BackgroundDrawnEvent e) {
-        Screen gui = e.getGui();
-        if (gui instanceof RealmsScreen) {
-            FancyVideoAPI.LOGGER.trace("Drawing");
+        if (e.getGui() instanceof RealmsScreen) {
             if (!init) {
-                MediaPlayers.getPlayer(0).playPrepared();
+                MediaPlayers.getPlayer(id).playPrepared();
             }
             if (frameNumb != 0 && 0 == frameNumb % 10000) {
-                MediaPlayers.getPlayer(0).pause();
+                MediaPlayers.getPlayer(id).pause();
             }
             frameNumb++;
 

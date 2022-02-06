@@ -2,7 +2,6 @@ package nick1st.fancyvideo.api;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import uk.co.caprica.vlcj.player.component.CallbackMediaListPlayerComponent;
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
 
@@ -20,7 +19,7 @@ public final class EmptyMediaPlayer extends MediaPlayer{
 
     public static synchronized EmptyMediaPlayer getInstance () {
         if (EmptyMediaPlayer.instance == null) {
-            EmptyMediaPlayer.instance = new EmptyMediaPlayer ();
+            EmptyMediaPlayer.instance = new EmptyMediaPlayer();
         }
         return EmptyMediaPlayer.instance;
     }
@@ -76,8 +75,8 @@ public final class EmptyMediaPlayer extends MediaPlayer{
     }
 
     @Override
-    public AdvancedFrameData getFrameAdvanced() {
-        return new AdvancedFrameData(new int[0], 0);
+    public AdvancedFrame getFrameAdvanced() {
+        return new AdvancedFrame(new int[0], 0);
     }
 
     @Override
