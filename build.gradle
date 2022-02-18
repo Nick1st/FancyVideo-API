@@ -5,16 +5,19 @@ buildscript {
     // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
     repositories {
         maven { url = 'https://maven.minecraftforge.net' } // Forge Maven
+        maven { url = 'https://maven.parchmentmc.org' } // Parchment
         gradlePluginPortal() // Repo for Gradle plugins, we need to get ShadowJar, as we need to create a fat jar.
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.parchmentmc:librarian:1.+'
         classpath group: 'gradle.plugin.com.github.johnrengelman', name: 'shadow', version: '7.1.+', changing: true
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -45,7 +48,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version'))
 
 minecraft {
-    mappings channel: 'official', version: '1.16.5'
+    mappings channel: 'parchment', version: '2021.10.17-1.16.5'
 
     // Default run configurations.
     runs {
