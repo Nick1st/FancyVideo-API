@@ -92,7 +92,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.23'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.29'
     implementation("uk.co.caprica:vlcj:${vlcj_version}") // vlcJ
 }
 
