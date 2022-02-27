@@ -19,11 +19,7 @@
 
 package uk.co.caprica.vlcj.binding;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.Platform;
-import com.sun.jna.Pointer;
+import com.sun.jna.*;
 
 import java.nio.ByteBuffer;
 
@@ -48,10 +44,10 @@ public interface LibC extends Library {
      * 10 characters are required, the buffer capacity must be 11 to accommodate
      * the null terminator.
      *
-     * @param str buffer
-     * @param size capacity of the buffer, including space for a null terminator
+     * @param str    buffer
+     * @param size   capacity of the buffer, including space for a null terminator
      * @param format format string
-     * @param args format arguments
+     * @param args   format arguments
      * @return length of the formatted string, which may exceed the capacity of the buffer, or less than zero on error
      */
     int vsnprintf(ByteBuffer str, int size, String format, Pointer args);
@@ -59,7 +55,7 @@ public interface LibC extends Library {
     /**
      * Locks (pins) parts of virtual address space into RAM so it can not be swapped out.
      *
-     * @param addr address pointer
+     * @param addr   address pointer
      * @param length length
      * @return 0 if successful; -1 if not, setting <code>errno</code> to an error code
      */
@@ -68,7 +64,7 @@ public interface LibC extends Library {
     /**
      * Unlock previously locked memory.
      *
-     * @param addr address pointer
+     * @param addr   address pointer
      * @param length length
      * @return 0 if successful; -1 if not, setting <code>errno</code> to an error code
      */
@@ -81,8 +77,8 @@ public interface LibC extends Library {
      * <p>
      * <em>Not available on Windows.</em>
      *
-     * @param name name of environment variable
-     * @param value value of the environment variable
+     * @param name      name of environment variable
+     * @param value     value of the environment variable
      * @param overwrite non-zero to replace any existing value
      * @return 0 if successful; -1 if not, setting <code>errno</code> to an error code
      */

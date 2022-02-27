@@ -33,7 +33,7 @@ public class BufferToMatrixStack {
         bb.begin(7, DefaultVertexFormats.POSITION_COLOR);
     }
 
-    public static int[] extractBytes (String imageName) throws IOException {
+    public static int[] extractBytes(String imageName) throws IOException {
         // open image
         File imgPath = new File(imageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
@@ -83,9 +83,9 @@ public class BufferToMatrixStack {
         float g = (color >> 8 & 255) / 255.0F;
         float b = (color & 255) / 255.0F;
 
-        bb.vertex(matrix4f, x, y+1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.vertex(matrix4f, x+1, y+1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.vertex(matrix4f, x+1, y, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x, y + 1, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x + 1, y + 1, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x + 1, y, 0.0F).color(r, g, b, 1F).endVertex();
         bb.vertex(matrix4f, x, y, 0.0F).color(r, g, b, 1F).endVertex();
     }
 

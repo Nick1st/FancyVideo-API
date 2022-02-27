@@ -24,30 +24,28 @@ import java.util.stream.IntStream;
  * <b>Use {@link MediaPlayers#isValid(int)} to check if the player can be used.</b>
  */
 public class MediaPlayer {
+    protected final MediaPlayerCallback callback = new MediaPlayerCallback(0, this);
+    protected final int id;
+    protected final Semaphore semaphore = new Semaphore(1, true);
     // Important stuff
-    private final CallbackMediaPlayerComponent mediaPlayerComponent;
-    private final MediaPlayerCallback callback = new MediaPlayerCallback(0, this);
-    private final int id;
-
+    protected CallbackMediaPlayerComponent mediaPlayerComponent;
     // The last rendered frame is stored here
-    private AdvancedFrame videoStream = new AdvancedFrame(new int[0], 0);
-    private final Semaphore semaphore = new Semaphore(1, true);
-
+    protected AdvancedFrame videoStream = new AdvancedFrame(new int[0], 0);
     // Image
-    private NativeImage image = new NativeImage(1, 1, true);
-    private final SelfCleaningDynamicTexture dyTex = new SelfCleaningDynamicTexture(image);
-    private final ResourceLocation loc;
+    protected NativeImage image = new NativeImage(1, 1, true);
+    protected final SelfCleaningDynamicTexture dyTex = new SelfCleaningDynamicTexture(image);
+    protected ResourceLocation loc;
 
     MediaPlayer() {
-        mediaPlayerComponent = new CallbackMediaListPlayerComponent(MediaPlayers.factory, null, null, true, null, callback, new DefaultBufferFormatCallback(), null);
+        mediaPlayerComponent = new CallbackMediaListPlayerComponent(MediaPlayers.getInstance().factory, null, null, true, null, callback, new DefaultBufferFormatCallback(), null);
         id = MediaPlayers.addPlayer(this);
         init();
-        loc = Minecraft.getInstance().getTextureManager().register("video_texture" + id, dyTex);
     }
 
     /**
      * Creates a new MediaPlayer for you. Call {@link MediaPlayers#getPlayer(int)} to get your reference
      * Please call {@link #destroy()} when you don't need it anymore
+     *
      * @return ID of the new MediaPlayer (keep it, it's important!)
      */
     public static int getNew() {
@@ -61,11 +59,16 @@ public class MediaPlayer {
         image = new NativeImage(1, 1, true);
         image.setPixelRGBA(0, 0, 0);
         dyTex.setPixels(image);
+        if (loc == null) {
+            loc = Minecraft.getInstance().getTextureManager().register("video_texture" + id, dyTex);
+        }
     }
 
-    public void destroy() {
+    void destroy() {
+        System.out.println("Destroyed");
+        mediaPlayerComponent.mediaPlayer().controls().stop();
         mediaPlayerComponent.release();
-        MediaPlayers.removePlayer(id);
+        //MediaPlayers.removePlayer(id);
     }
 
     public void play(String mrl, String... options) {
@@ -112,6 +115,17 @@ public class MediaPlayer {
         return new int[0];
     }
 
+    void setFrame(AdvancedFrame in) {
+        try {
+            semaphore.acquire();
+            videoStream = new AdvancedFrame(in);
+            semaphore.release();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public AdvancedFrame getFrameAdvanced() {
         try {
             semaphore.acquire();
@@ -123,17 +137,6 @@ public class MediaPlayer {
             Thread.currentThread().interrupt();
         }
         return new AdvancedFrame(new int[0], 0);
-    }
-
-    void setFrame(AdvancedFrame in) {
-        try {
-            semaphore.acquire();
-            videoStream = new AdvancedFrame(in);
-            semaphore.release();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
     }
 
     /**
@@ -156,13 +159,14 @@ public class MediaPlayer {
 
     /**
      * Renders the current frame to a {@link ResourceLocation} for further use.
+     *
      * @return The {@link ResourceLocation} rendered to.
      */
     public ResourceLocation renderImage() {
         AdvancedFrame frameAdvanced = getFrameAdvanced();
         int[] frame = frameAdvanced.frame;
         int width = frameAdvanced.width;
-        if (width == 0)  {
+        if (width == 0) {
             return loc;
         }
         image = new NativeImage(width, frame.length / width, true);

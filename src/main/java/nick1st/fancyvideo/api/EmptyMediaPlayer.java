@@ -1,27 +1,32 @@
 package nick1st.fancyvideo.api;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import uk.co.caprica.vlcj.player.component.CallbackMediaListPlayerComponent;
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
 
-public final class EmptyMediaPlayer extends MediaPlayer{
+public final class EmptyMediaPlayer extends MediaPlayer {
 
+    private static final AdvancedFrame emptyAdvancedFrame = new AdvancedFrame(new int[0], 0);
     private static EmptyMediaPlayer instance;
 
-    // Important stuff
-    private final CallbackMediaPlayerComponent mediaPlayer;
-
     private EmptyMediaPlayer() {
-        mediaPlayer = new CallbackMediaListPlayerComponent(MediaPlayers.factory, null, null, true, null, null, null, null);
-        MediaPlayers.addPlayer(this);
+        super();
+        this.destroy();
+        mediaPlayerComponent = null;
+        //mediaPlayerComponent = new CallbackMediaListPlayerComponent(MediaPlayers.getInstance().factory, null, null, true, null, null, null, null);
     }
 
-    public static synchronized EmptyMediaPlayer getInstance () {
+    public static synchronized EmptyMediaPlayer getInstance() {
         if (EmptyMediaPlayer.instance == null) {
             EmptyMediaPlayer.instance = new EmptyMediaPlayer();
         }
         return EmptyMediaPlayer.instance;
+    }
+
+    public void setUp() {
+        super.init();
     }
 
     @Override
@@ -31,6 +36,9 @@ public final class EmptyMediaPlayer extends MediaPlayer{
 
     @Override
     public void destroy() {
+        System.out.println("Destroyed");
+        mediaPlayerComponent.mediaPlayer().controls().stop();
+        mediaPlayerComponent.release();
         // Void Callback
     }
 
@@ -76,12 +84,12 @@ public final class EmptyMediaPlayer extends MediaPlayer{
 
     @Override
     public AdvancedFrame getFrameAdvanced() {
-        return new AdvancedFrame(new int[0], 0);
+        return emptyAdvancedFrame;
     }
 
     @Override
-    public CallbackMediaPlayerComponent getTrueMediaPlayer() {
-        return mediaPlayer;
+    public CallbackMediaPlayerComponent getTrueMediaPlayer() throws NullPointerException {
+        throw new NullPointerException("Running on EmptyMediaPlayer");
     }
 
     @Override
@@ -91,12 +99,12 @@ public final class EmptyMediaPlayer extends MediaPlayer{
 
     @Override
     public ResourceLocation renderImage() {
-        return super.renderImage();
+        return this.loc;
     }
 
     @Override
     public void bindFrame() {
-        // Void Callback
+        Minecraft.getInstance().textureManager.bind(new ResourceLocation("minecraft", "dynamic/video_texture0_1"));
     }
 
 }

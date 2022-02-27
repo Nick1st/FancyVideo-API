@@ -29,11 +29,16 @@ public class MatrixStackRenderTest {
         if (e.getGui() instanceof RealmsScreen) {
             if (!init) {
                 MediaPlayers.getPlayer(id).playPrepared();
+                init = true;
             }
-            if (frameNumb != 0 && 0 == frameNumb % 10000) {
-                MediaPlayers.getPlayer(id).pause();
+            if (frameNumb == 100) {
+                MediaPlayers.removePlayer(id);
+                //MediaPlayers.shutdown();
             }
             frameNumb++;
+/*            if (frameNumb > 100) {
+                return;
+            }*/
 
             // Generic Render Code for Screens
             int width = Minecraft.getInstance().screen.width;
@@ -44,6 +49,11 @@ public class MatrixStackRenderTest {
             RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
             AbstractGui.blit(e.getMatrixStack(), 0, 0/*x, y*/, 0.0F, 0.0F, width, height, width, height);
             RenderSystem.disableBlend();
+            try {
+                MediaPlayers.getPlayer(id).getTrueMediaPlayer();
+            } catch (NullPointerException ignored) {
+
+            }
         }
     }
 }

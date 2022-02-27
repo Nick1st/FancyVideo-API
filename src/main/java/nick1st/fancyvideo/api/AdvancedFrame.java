@@ -9,7 +9,7 @@ public class AdvancedFrame {
         this.width = width;
     }
 
-    AdvancedFrame (AdvancedFrame toClone) {
+    AdvancedFrame(AdvancedFrame toClone) {
         if (toClone.frame == null) {
             this.frame = new int[0];
         } else {

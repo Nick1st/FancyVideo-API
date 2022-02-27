@@ -37,15 +37,12 @@ import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_get_version;
 @Mod("fancyvideo-api")
 public class FancyVideoAPI {
 
-    // Running DEBUG?
-    private static final boolean DEBUG = true;
-    private MatrixStackRenderTest matrixRenderTest;
-
-    private final NativeDiscovery discovery = new NativeDiscovery();
-
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
-
+    // Running DEBUG?
+    private static final boolean DEBUG = true;
+    private final NativeDiscovery discovery = new NativeDiscovery();
+    private MatrixStackRenderTest matrixRenderTest;
     // First render Tick
     private boolean renderTick;
 
@@ -63,7 +60,7 @@ public class FancyVideoAPI {
         }
 
         // Setup API
-//        EmptyMediaPlayer.getInstance();
+        EmptyMediaPlayer.getInstance();
 
         // Debug?
         if (DEBUG) {
@@ -72,10 +69,14 @@ public class FancyVideoAPI {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+
+        // Register shutdown hook
+        // Runtime.getRuntime().addShutdownHook(new ShutdownHook(MediaPlayers.getInstance())); TODO Finish this
     }
 
     public void renderTick(TickEvent.RenderTickEvent event) {
         if (!renderTick) {
+            EmptyMediaPlayer.getInstance().setUp();
             LOGGER.info("Tick");
             matrixRenderTest = new MatrixStackRenderTest();
             matrixRenderTest.init();
@@ -86,7 +87,7 @@ public class FancyVideoAPI {
 
     private boolean onInit() {
         deleteOldLog();
-        if (!new File(LibraryMapping.libVLC.linuxName).isFile() && !new File(LibraryMapping.libVLC.windowsName).isFile() &&  !new File(LibraryMapping.libVLC.macName).isFile()) {
+        if (!new File(LibraryMapping.libVLC.linuxName).isFile() && !new File(LibraryMapping.libVLC.windowsName).isFile() && !new File(LibraryMapping.libVLC.macName).isFile()) {
             LOGGER.info("Unpacking natives...");
             if (!unpack()) {
                 LOGGER.warn("We do not bundle natives for your os. You can try to manually install VLC Player or libVLC for your System. FancyVideo-API only runs with libVLC Versions 4.0.0+");
@@ -102,7 +103,7 @@ public class FancyVideoAPI {
             return false;
         }
     }
-    
+
     private boolean unpack() {
         // Get our os
         Map<String, String> archMap = new HashMap<>();
@@ -135,7 +136,7 @@ public class FancyVideoAPI {
         }
 
         // Extract natives
-        for (LibraryMapping mapping: LibraryMapping.values()) {
+        for (LibraryMapping mapping : LibraryMapping.values()) {
             String file;
             switch (os) {
                 case ("linux"):
@@ -206,6 +207,5 @@ public class FancyVideoAPI {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
