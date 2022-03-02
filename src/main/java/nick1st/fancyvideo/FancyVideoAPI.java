@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import nick1st.fancyvideo.api.EmptyMediaPlayer;
+import nick1st.fancyvideo.api.ShutdownHook;
 import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -71,7 +72,7 @@ public class FancyVideoAPI {
         MinecraftForge.EVENT_BUS.register(this);
 
         // Register shutdown hook
-        // Runtime.getRuntime().addShutdownHook(new ShutdownHook(MediaPlayers.getInstance())); TODO Finish this
+        Runtime.getRuntime().addShutdownHook(new ShutdownHook()); // TODO Finish this
     }
 
     public void renderTick(TickEvent.RenderTickEvent event) {

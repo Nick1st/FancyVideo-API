@@ -1,5 +1,6 @@
 package nick1st.fancyvideo.api;
 
+import nick1st.fancyvideo.FancyVideoAPI;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
  * Most methods are for internal use only. Use {@link MediaPlayer#getNew()} to create a new {@link MediaPlayer} and get its unique id.
  * Use {@link #getPlayer(int)} to get your reference afterwards. <br>
  * If your player is not required anymore, use {@link MediaPlayer#destroy()} to free its resources. Calling {@link #getPlayer(int)} on a removed or
- * not existing player may <b>throw a {@link IndexOutOfBoundsException} or return {@link null}</b>. Use {@link #isValid(int)} to check if your reference is valid. <br>
+ * not existing player may <b>throw a {@link IndexOutOfBoundsException} or return null</b>. Use {@link #isValid(int)} to check if your reference is valid. <br>
  * Your object may get removed if a {link ShutdownEvent} fires, as this {@link #shutdown(MediaPlayers)} the library.
  */
 public final class MediaPlayers { // TODO Make this garbage collection save
@@ -52,16 +53,18 @@ public final class MediaPlayers { // TODO Make this garbage collection save
         } else return instance.playerStore.get(id) != EmptyMediaPlayer.getInstance();
     }
 
-    public static void shutdown() { //TODO Nonpublic and finish this
-        if (!instance.shutdown) {
-            instance.shutdown = true;
+    public void shutdown() { //TODO Nonpublic and finish this
+        if (!shutdown) {
+            shutdown = true;
         } else {
             return;
         }
-        System.out.println("Running shutdown");
-        instance.playerStore.forEach(MediaPlayer::destroy);
-        System.out.println("Running shutdown finished");
-        instance.playerStore.clear();
-        instance.factory.release();
+        FancyVideoAPI.LOGGER.info("Running shutdown");
+        playerStore.forEach(MediaPlayer::destroy);
+        FancyVideoAPI.LOGGER.info("Running shutdown step 1 finished");
+        playerStore.clear();
+        FancyVideoAPI.LOGGER.info("Running shutdown step 2 finished");
+        factory.release();
+        FancyVideoAPI.LOGGER.info("Running shutdown completely finished");
     }
 }

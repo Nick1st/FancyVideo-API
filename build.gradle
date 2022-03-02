@@ -23,14 +23,12 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 
-
 //#####################################################################################################################
 //                                             Artefact Specification
 //#####################################################################################################################
 version = '1.16.5-0.0.1.0-beta'
 group = 'nick1st.fancyvideo'
 archivesBaseName = 'FancyVideo-API'
-
 
 
 //#####################################################################################################################
@@ -103,7 +101,6 @@ tasks.withType(AbstractArchiveTask).configureEach {
 }
 
 
-
 //#####################################################################################################################
 //                                                   Jar Builds
 //#####################################################################################################################
@@ -137,10 +134,10 @@ shadowJar { // Task to create a fat Jar containing our lib.
     //minimize() // Call minimize so we only get required (used) classes from vlcj
 }
 
-task toFinalJar (type: Jar) {
+task toFinalJar(type: Jar) {
     doFirst {
         try {
-            copy{
+            copy {
                 from(zipTree("${project.buildDir}/libs/${project.name}-${project.version}-fat.jar"))
                 into("${project.buildDir}/libs/buildFolder")
             }
@@ -161,7 +158,7 @@ task toFinalJar (type: Jar) {
     }
 }
 
-task buildRelease () {
+task buildRelease() {
     dependsOn 'build'
     dependsOn 'shadowJar'
     dependsOn 'toFinalJar'
@@ -177,8 +174,8 @@ publish.dependsOn('reobfJar')
 //#####################################################################################################################
 //                                                   Publish
 //#####################################################################################################################
-publishing{
-    publications{
+publishing {
+    publications {
         mavenJava(MavenPublication) {
             artifact jar
         }

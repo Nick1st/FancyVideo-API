@@ -3,7 +3,7 @@ package nick1st.fancyvideo.api;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
-import uk.co.caprica.vlcj.player.component.CallbackMediaListPlayerComponent;
+import nick1st.fancyvideo.FancyVideoAPI;
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent;
 
 public final class EmptyMediaPlayer extends MediaPlayer {
@@ -15,7 +15,6 @@ public final class EmptyMediaPlayer extends MediaPlayer {
         super();
         this.destroy();
         mediaPlayerComponent = null;
-        //mediaPlayerComponent = new CallbackMediaListPlayerComponent(MediaPlayers.getInstance().factory, null, null, true, null, null, null, null);
     }
 
     public static synchronized EmptyMediaPlayer getInstance() {
@@ -30,15 +29,16 @@ public final class EmptyMediaPlayer extends MediaPlayer {
     }
 
     @Override
-    public void init() {
-        // Void Callback
+    public void destroy() {
+        if (this.mediaPlayerComponent != null) {
+            super.destroy();
+        } else {
+            FancyVideoAPI.LOGGER.info("Destroy called on EmptyMediaPlayer");
+        }
     }
 
     @Override
-    public void destroy() {
-        System.out.println("Destroyed");
-        mediaPlayerComponent.mediaPlayer().controls().stop();
-        mediaPlayerComponent.release();
+    public void init() {
         // Void Callback
     }
 

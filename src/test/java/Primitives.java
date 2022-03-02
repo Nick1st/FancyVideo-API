@@ -28,7 +28,7 @@ public class Primitives {
         public String toString() {
             return "TestObj{" +
                     "i=" + i +
-                    "ia="  + Arrays.toString(ia) +
+                    "ia=" + Arrays.toString(ia) +
                     '}';
         }
     }

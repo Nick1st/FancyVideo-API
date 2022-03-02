@@ -2,8 +2,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.renderer.Tessellator;
 import nick1st.fancyvideo.BufferToMatrixStack;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;

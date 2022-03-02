@@ -65,10 +65,9 @@ public class MediaPlayer {
     }
 
     void destroy() {
-        System.out.println("Destroyed");
+        FancyVideoAPI.LOGGER.info("Destroyed");
         mediaPlayerComponent.mediaPlayer().controls().stop();
         mediaPlayerComponent.release();
-        //MediaPlayers.removePlayer(id);
     }
 
     public void play(String mrl, String... options) {

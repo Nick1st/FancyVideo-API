@@ -1,20 +1,17 @@
 package nick1st.fancyvideo.api;
 
 
+import nick1st.fancyvideo.FancyVideoAPI;
+
 public class ShutdownHook extends Thread {
 
-    public final MediaPlayers lock;
-
-    public ShutdownHook(MediaPlayers lock) {
-        this.lock = lock;
-    }
+    private final MediaPlayers instance = MediaPlayers.getInstance();
 
     @Override
     public void run() {
-        System.out.println("Running FancyVideo-API shutdown hook");
-        //MediaPlayers.shutdown(lock);
-        System.out.println("Shutdown hook finished");
+        FancyVideoAPI.LOGGER.info("Running FancyVideo-API shutdown hook");
+        instance.shutdown();
+        FancyVideoAPI.LOGGER.info("Shutdown hook finished");
     }
-
 
 }
