@@ -1,9 +1,11 @@
 package nick1st.fancyvideo;
 
 import com.sun.jna.NativeLibrary; //NOSONAR This class doesn't exist in the java api
+import cpw.mods.modlauncher.TransformingClassLoader;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -15,8 +17,13 @@ import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.filter.AbstractFilter;
+import org.apache.logging.log4j.message.Message;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -27,8 +34,10 @@ import uk.co.caprica.vlcj.support.version.Version;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static nick1st.fancyvideo.Constants.AMD_64;
 import static nick1st.fancyvideo.Constants.PLUGINSDIR;
@@ -53,6 +62,31 @@ public class FancyVideoAPI {
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
             LOGGER.warn("## WARNING ## 'FancyVideo API' is a client mod and has no effect when loaded on a server!");
             return;
+        }
+
+        // Ignore the silly NullPointers caused by ModLauncher // TODO Make this actually STOP the error
+        if (LogManager.getLogger(EventSubclassTransformer.class) instanceof org.apache.logging.log4j.core.Logger) {
+            org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(EventSubclassTransformer.class);
+            logger.warn("## WARNING ## 'FancyVideo API' is modifying this log! Disable this behavior in config BEFORE reporting bugs!");
+            logger.addFilter(new AbstractFilter() {
+                @Override
+                public Result filter(LogEvent event) {
+                    if (event.getMessage() != null && event.getThrown() != null && event.getMarker() != null) {
+                        if (event.getMarker().getName().equals("EVENTBUS") && event.getMessage().getFormattedMessage().equals("An error occurred building event handler")) {
+                            if (Arrays.stream(event.getThrown().getStackTrace()).anyMatch(sTE -> sTE.getClassName().startsWith("uk.co.caprica.vlcj."))) {
+                                // LOGGER.fatal("This is nice");
+                                return Result.DENY;
+                            }
+                        }
+                    }
+                    return Result.NEUTRAL;
+                }
+            });
+
+            // Test if it works
+            // Throwable t = new Throwable();
+            // t.setStackTrace(new StackTraceElement[]{new StackTraceElement("uk.co.caprica.vlcj.binding.LibC", "free", "LibC.class", 126)});
+            // logger.error("An error occurred building event handler", t);
         }
 
         // Init natives
