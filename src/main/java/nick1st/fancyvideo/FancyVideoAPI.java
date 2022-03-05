@@ -1,7 +1,6 @@
 package nick1st.fancyvideo;
 
 import com.sun.jna.NativeLibrary; //NOSONAR This class doesn't exist in the java api
-import cpw.mods.modlauncher.TransformingClassLoader;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -13,17 +12,15 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import nick1st.fancyvideo.api.EmptyMediaPlayer;
 import nick1st.fancyvideo.api.ShutdownHook;
+import nick1st.fancyvideo.config.SimpleConfig;
 import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
-import org.apache.logging.log4j.message.Message;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.NativeLibraryMappingException;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -37,7 +34,6 @@ import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static nick1st.fancyvideo.Constants.AMD_64;
 import static nick1st.fancyvideo.Constants.PLUGINSDIR;
@@ -49,12 +45,15 @@ public class FancyVideoAPI {
 
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger("FancyVideo-API");
-    // Running DEBUG?
-    private static final boolean DEBUG = true;
     private final NativeDiscovery discovery = new NativeDiscovery();
+
+    // DEBUG VAR
     private MatrixStackRenderTest matrixRenderTest;
     // First render Tick
     private boolean renderTick;
+    // Config Holder
+    private SimpleConfig config;
+    private final int dllVersion = 0;
 
     public FancyVideoAPI() {
         // Client only
@@ -64,8 +63,11 @@ public class FancyVideoAPI {
             return;
         }
 
+        // Init Config
+        initConfig();
+
         // Ignore the silly NullPointers caused by ModLauncher // TODO Make this actually STOP the error
-        if (LogManager.getLogger(EventSubclassTransformer.class) instanceof org.apache.logging.log4j.core.Logger) {
+        if (LogManager.getLogger(EventSubclassTransformer.class) instanceof org.apache.logging.log4j.core.Logger && !config.getAsBool("debugLog")) {
             org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(EventSubclassTransformer.class);
             logger.warn("## WARNING ## 'FancyVideo API' is modifying this log! Disable this behavior in config BEFORE reporting bugs!");
             logger.addFilter(new AbstractFilter() {
@@ -89,6 +91,14 @@ public class FancyVideoAPI {
             // logger.error("An error occurred building event handler", t);
         }
 
+        // Delete mismatched dlls
+        if (config.getAsInt("dllVersion") != dllVersion) {
+            LOGGER.info("DLL Version did change, removing old files...");
+            // clearDLL();
+            config.properties.setProperty("dllVersion", String.valueOf(dllVersion));
+            config.write();
+        }
+
         // Init natives
         if (!onInit()) {
             System.exit(-9515);
@@ -97,8 +107,8 @@ public class FancyVideoAPI {
         // Setup API
         EmptyMediaPlayer.getInstance();
 
-        // Debug?
-        if (DEBUG) {
+        // Example?
+        if (config.getAsBool("example")) {
             MinecraftForge.EVENT_BUS.addListener(this::renderTick);
         }
 
@@ -107,6 +117,27 @@ public class FancyVideoAPI {
 
         // Register shutdown hook
         Runtime.getRuntime().addShutdownHook(new ShutdownHook()); // TODO Finish this
+    }
+
+    private void initConfig() {
+        // Super Simple Config
+        // We can't use Forges Config, because it loads way to late
+        config = new SimpleConfig(new File("config", "fancyvideo-api.cfg"));
+
+        config.setProperty("dllVersion", String.valueOf(dllVersion), "DO NOT MODIFY THIS! (Set it to -1 to regenerate your DLLs, but otherwise DO NOT TOUCH!)", ">= -1", s -> {
+            try {
+                if (Integer.parseInt(s) >= -1) {
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+            return false;
+        });
+        config.setProperty("debugLog", String.valueOf(false), "Enable debug logging. Disables the ModLauncher log filter. This cause massive log spam! Only activate this when you're told to!", "true / false", s -> Arrays.asList("true", "false").contains(s));
+        config.setProperty("example", String.valueOf(false), "Activate the debug/showcase mode. Access it by pressing the Realms Button in Main Menu.", "true / false", s -> Arrays.asList("true", "false").contains(s));
+
+        config.read();
+        config.write();
     }
 
     public void renderTick(TickEvent.RenderTickEvent event) {

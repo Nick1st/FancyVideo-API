@@ -18,7 +18,7 @@ public class BufferToMatrixStack {
     public BufferBuilder bb;
 
     public BufferToMatrixStack(MatrixStack matrix) {
-        matrix4f = matrix.last().pose(); //getLast().getMatrix();
+        matrix4f = matrix.last().pose();
         bb = Tessellator.getInstance().getBuilder();
         RenderSystem.disableTexture();
         // Required for transparency
@@ -90,7 +90,7 @@ public class BufferToMatrixStack {
     }
 
     public void finishDrawing() {
-        bb.end(); //finishDrawing();
+        bb.end();
         WorldVertexBufferUploader.end(bb);
         RenderSystem.enableTexture();
         // Required for transparency
