@@ -2,7 +2,7 @@ modLoader="javafml" #mandatory
 loaderVersion="[36,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 license="GNU GPL 3.0"
 # A URL to refer people to when problems occur with this mod
-#issueTrackerURL="http://my.issue.tracker/" #optional
+issueTrackerURL="https://github.com/Nick1st/FancyVideo-API/issues"
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]] #mandatory
 modId="fancyvideo-api" #mandatory
@@ -14,11 +14,11 @@ displayName="FancyVideo API" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
 #updateJSONURL="http://myurl.me/" #optional
 # A URL for the "homepage" for this mod, displayed in the mod UI
-#displayURL="http://example.com/" #optional
+displayURL="https://github.com/Nick1st/FancyVideo-API"
 # A file name (in the root of the mod JAR) containing a logo for display
 #logoFile="fancyvideo.png" #optional
 # A text field displayed in the mod UI
-#credits="Thanks for this example mod goes to Java" #optional
+credits="Thanks to the team behind VLC and Caprica for VLCJ, without them this mod wouldn't be possible. Also huge THANKS to Silk for helping me out with a few ideas, that made this finally possible." #optional
 # A text field displayed in the mod UI
 authors="Nick1st" #optional
 # The description text for the mod (multi line!) (#mandatory)
