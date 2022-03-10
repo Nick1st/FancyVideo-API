@@ -1,3 +1,28 @@
+/*
+ * This file is part of the FancyVideo-API.
+ *
+ * The FancyVideo-API is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The FancyVideo-API is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The FancyVideo-API uses VLCJ, Copyright 2009-2021 Caprica Software Limited,
+ * licensed under the GNU General Public License.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with VLCJ.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FancyVideo-API.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2022 Nick1st.
+ */
+
 package nick1st.fancyvideo.test;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -13,14 +38,11 @@ import nick1st.fancyvideo.api.MediaPlayers;
 public class MatrixStackRenderTest {
     int id;
     boolean init = false;
-    int frameNumb = 0;
 
     public void init() {
         FancyVideoAPI.LOGGER.info("Setting up test media player");
         id = MediaPlayer.getNew();
-        //MediaPlayers.getPlayer(id).prepare("DarkDays.mov");
         MediaPlayers.getPlayer(id).prepare("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-        //MediaPlayers.getPlayer(id).prepare("ColorTest.mov");
         MediaPlayers.getPlayer(id).volume(200);
     }
 
@@ -31,15 +53,6 @@ public class MatrixStackRenderTest {
                 MediaPlayers.getPlayer(id).playPrepared();
                 init = true;
             }
-            if (frameNumb == 100) {
-                MediaPlayers.removePlayer(id);
-                //MediaPlayers.shutdown();
-            }
-            frameNumb++;
-/*            if (frameNumb > 100) {
-                return;
-            }*/
-
             // Generic Render Code for Screens
             int width = Minecraft.getInstance().screen.width;
             int height = Minecraft.getInstance().screen.height;
@@ -49,11 +62,6 @@ public class MatrixStackRenderTest {
             RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
             AbstractGui.blit(e.getMatrixStack(), 0, 0/*x, y*/, 0.0F, 0.0F, width, height, width, height);
             RenderSystem.disableBlend();
-            try {
-                MediaPlayers.getPlayer(id).getTrueMediaPlayer();
-            } catch (NullPointerException ignored) {
-
-            }
         }
     }
 }

@@ -15,11 +15,13 @@
  * along with VLCJ.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Copyright 2009-2021 Caprica Software Limited.
+ *
+ * Modified 2022 Nick1st (Make it compatible with older jna)
  */
 
 package uk.co.caprica.vlcj.binding;
 
-import com.sun.jna.Native;
+import com.sun.jna.Native; //NOSONAR This class doesn't exist in the java api
 import com.sun.jna.Pointer;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;

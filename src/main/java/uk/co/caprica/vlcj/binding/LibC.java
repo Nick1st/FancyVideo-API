@@ -15,11 +15,13 @@
  * along with VLCJ.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Copyright 2009-2021 Caprica Software Limited.
+ *
+ * Modified 2022 Nick1st (Make it compatible with older jna)
  */
 
 package uk.co.caprica.vlcj.binding;
 
-import com.sun.jna.*;
+import com.sun.jna.*; //NOSONAR This class doesn't exist in the java api
 
 import java.nio.ByteBuffer;
 

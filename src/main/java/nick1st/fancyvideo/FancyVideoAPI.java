@@ -1,3 +1,28 @@
+/*
+ * This file is part of the FancyVideo-API.
+ *
+ * The FancyVideo-API is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The FancyVideo-API is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The FancyVideo-API uses VLCJ, Copyright 2009-2021 Caprica Software Limited,
+ * licensed under the GNU General Public License.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with VLCJ.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FancyVideo-API.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2022 Nick1st.
+ */
+
 package nick1st.fancyvideo;
 
 import com.sun.jna.NativeLibrary; //NOSONAR This class doesn't exist in the java api
@@ -15,6 +40,7 @@ import nick1st.fancyvideo.api.ShutdownHook;
 import nick1st.fancyvideo.config.SimpleConfig;
 import nick1st.fancyvideo.test.MatrixStackRenderTest;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -53,7 +79,10 @@ public class FancyVideoAPI {
     private boolean renderTick;
     // Config Holder
     private SimpleConfig config;
-    private final int dllVersion = 0;
+    private static final int DLL_VERSION = 0;
+
+    // OS detection
+    public String os;
 
     public FancyVideoAPI() {
         // Client only
@@ -91,11 +120,22 @@ public class FancyVideoAPI {
             // logger.error("An error occurred building event handler", t);
         }
 
+        // Detect OS
+        if (SystemUtils.IS_OS_LINUX) {
+            os = "linux";
+        } else if (SystemUtils.IS_OS_MAC) {
+            os = "mac";
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            os = "windows";
+        } else {
+            os = "unsupported";
+        }
+
         // Delete mismatched dlls
-        if (config.getAsInt("dllVersion") != dllVersion) {
+        if (config.getAsInt("dllVersion") != DLL_VERSION) {
             LOGGER.info("DLL Version did change, removing old files...");
-            // clearDLL();
-            config.properties.setProperty("dllVersion", String.valueOf(dllVersion));
+            clearDLL();
+            config.properties.setProperty("dllVersion", String.valueOf(DLL_VERSION));
             config.write();
         }
 
@@ -119,17 +159,28 @@ public class FancyVideoAPI {
         Runtime.getRuntime().addShutdownHook(new ShutdownHook()); // TODO Finish this
     }
 
+    private void clearDLL() {
+        try {
+            new File(LibraryMapping.libVLC.getByOS(os)).delete();
+            new File(LibraryMapping.libVLCCore.getByOS(os)).delete();
+            FileUtils.deleteDirectory(new File("plugins"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void initConfig() {
         // Super Simple Config
         // We can't use Forges Config, because it loads way to late
         config = new SimpleConfig(new File("config", "fancyvideo-api.cfg"));
 
-        config.setProperty("dllVersion", String.valueOf(dllVersion), "DO NOT MODIFY THIS! (Set it to -1 to regenerate your DLLs, but otherwise DO NOT TOUCH!)", ">= -1", s -> {
+        config.setProperty("dllVersion", String.valueOf(DLL_VERSION), "DO NOT MODIFY THIS! (Set it to -1 to regenerate your DLLs, but otherwise DO NOT TOUCH!)", ">= -1", s -> {
             try {
                 if (Integer.parseInt(s) >= -1) {
                     return true;
                 }
             } catch (NumberFormatException ignored) {
+                // Ignored
             }
             return false;
         });
@@ -183,14 +234,6 @@ public class FancyVideoAPI {
         archMap.put("arm64", "arm64");
         archMap.put("powerpc", "ppc");
         String arch = archMap.get(SystemUtils.OS_ARCH);
-        String os = null;
-        if (SystemUtils.IS_OS_LINUX) {
-            os = "linux";
-        } else if (SystemUtils.IS_OS_MAC) {
-            os = "mac";
-        } else if (SystemUtils.IS_OS_WINDOWS) {
-            os = "windows";
-        }
 
         ClassLoader loader = this.getClass().getClassLoader();
 

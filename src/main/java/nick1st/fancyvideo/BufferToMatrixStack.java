@@ -1,3 +1,28 @@
+/*
+ * This file is part of the FancyVideo-API.
+ *
+ * The FancyVideo-API is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The FancyVideo-API is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * The FancyVideo-API uses VLCJ, Copyright 2009-2021 Caprica Software Limited,
+ * licensed under the GNU General Public License.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with VLCJ.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with FancyVideo-API.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2022 Nick1st.
+ */
+
 package nick1st.fancyvideo;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -14,8 +39,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class BufferToMatrixStack {
-    public Matrix4f matrix4f;
-    public BufferBuilder bb;
+    public final Matrix4f matrix4f;
+    public final BufferBuilder bb;
 
     public BufferToMatrixStack(MatrixStack matrix) {
         matrix4f = matrix.last().pose();
@@ -83,9 +108,9 @@ public class BufferToMatrixStack {
         float g = (color >> 8 & 255) / 255.0F;
         float b = (color & 255) / 255.0F;
 
-        bb.vertex(matrix4f, x, y + 1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.vertex(matrix4f, x + 1, y + 1, 0.0F).color(r, g, b, 1F).endVertex();
-        bb.vertex(matrix4f, x + 1, y, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x, y + 1.0F, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x + 1.0F, y + 1.0F, 0.0F).color(r, g, b, 1F).endVertex();
+        bb.vertex(matrix4f, x + 1.0F, y, 0.0F).color(r, g, b, 1F).endVertex();
         bb.vertex(matrix4f, x, y, 0.0F).color(r, g, b, 1F).endVertex();
     }
 
