@@ -6,7 +6,7 @@ Documentation is work-in-progress, have a look at the MatrixStackRenderTest clas
 Mods that use this currently:
 - None (I promise at least one mod will follow soonTM)
 
-This Project contains files from the VLCJ project, licensed under the terms of the GNU GENERAL PUBLIC LICENSE Version 3. Sources are available at https://code.videolan.org/videolan/vlc/.
+This Project contains files from the VLCJ project, licensed under the terms of the GNU GENERAL PUBLIC LICENSE Version 3. Sources are available at https://github.com/caprica/vlcj.
 This Project contains files from the VLC project, licensed under the terms of the GNU General Public License Version 2. Sources are available at https://code.videolan.org/videolan/vlc/.
 
 
