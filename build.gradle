@@ -25,7 +25,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 //#####################################################################################################################
 //                                             Artefact Specification
 //#####################################################################################################################
-version = '1.16.5-0.0.1.0-beta'
+version = '1.16.5-0.1.1.0-beta'
 group = 'nick1st.fancyvideo'
 archivesBaseName = 'FancyVideo-API'
 
@@ -34,18 +34,18 @@ archivesBaseName = 'FancyVideo-API'
 //                                      Configs for different gradle Plugins
 //#####################################################################################################################
 configurations.all {
-    resolutionStrategy {
-        force 'net.java.dev.jna:jna:4.5.2', 'net.java.dev.jna:jna-platform:4.5.2' // force jna used by Minecraft
+    resolutionStrategy { // force jna used by Minecraft
+        force group: 'net.java.dev.jna', name: 'jna', version: '4.5.2'
+        force group: 'net.java.dev.jna', name: 'jna-platform', version: '4.5.2'
     }
 }
-
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version'))
 
 minecraft {
-    mappings channel: 'parchment', version: '2021.10.17-1.16.5'
+    mappings channel: 'parchment', version: '2022.03.06-1.16.5'
 
     // Default run configurations.
     runs {
@@ -89,14 +89,8 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.29'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.33'
     implementation("uk.co.caprica:vlcj:${vlcj_version}") // vlcJ
-}
-
-// Make builds reproducible
-tasks.withType(AbstractArchiveTask).configureEach {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
 }
 
 
@@ -130,28 +124,9 @@ shadowJar { // Task to create a fat Jar containing our lib.
         })
     }
 
+    exclude 'META-INF/maven/**'
+
     //minimize() // Call minimize so we only get required (used) classes from vlcj
-}
-
-task toFinalJar(type: Jar) {
-    doFirst {
-        try {
-            copy {
-                from(zipTree("${project.buildDir}/libs/${project.name}-${project.version}-fat.jar"))
-                into("${project.buildDir}/libs/buildFolder")
-            }
-        } catch (Exception ignored) {
-
-        }
-    }
-    from 'build/libs/buildFolder'
-    exclude('**/*maven*')
-    archiveBaseName.set(project.name)
-    archiveClassifier.set('full')
-    archiveVersion.set(project.version as String)
-    doLast {
-        delete(files("${project.buildDir}/libs/buildFolder", "${project.buildDir}/libs/${project.name}-${project.version}-fat.jar"))
-    }
 }
 
 task buildRelease() {
@@ -159,11 +134,9 @@ task buildRelease() {
     reobf { shadowJar {} }
 
     dependsOn 'shadowJar'
-    dependsOn 'toFinalJar'
     dependsOn 'jar'
 
     tasks.findByName('shadowJar').mustRunAfter 'jar'
-    tasks.findByName('toFinalJar').mustRunAfter 'shadowJar'
 }
 
 shadowJar.finalizedBy('reobfShadowJar')

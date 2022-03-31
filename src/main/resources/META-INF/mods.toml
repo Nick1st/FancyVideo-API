@@ -14,16 +14,16 @@ displayName="FancyVideo API" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
 #updateJSONURL="http://myurl.me/" #optional
 # A URL for the "homepage" for this mod, displayed in the mod UI
-displayURL="https://github.com/Nick1st/FancyVideo-API"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/fancyvideo-api"
 # A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="fancyvideo.png" #optional
+logoFile="fancyvideo-api.png" #optional
 # A text field displayed in the mod UI
 credits="Thanks to the team behind VLC and Caprica for VLCJ, without them this mod wouldn't be possible. Also huge THANKS to Silk for helping me out with a few ideas, that made this finally possible." #optional
 # A text field displayed in the mod UI
 authors="Nick1st" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A mod for rendering videos in minecraft
+    A mod for rendering videos in minecraft.
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.fancyvideo-api]] #optional
